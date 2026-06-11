@@ -1,49 +1,47 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { ActivityIndicator, View, StyleSheet } from 'react-native';
-import { router } from 'expo-router';
+import { Redirect, useRootNavigationState } from 'expo-router';
 import { useAuth } from '../store/AuthContext';
 
 export default function Index() {
   const { user, loading, isAuthenticated } = useAuth();
+  const navigationState = useRootNavigationState();
 
-  useEffect(() => {
-    if (loading) return;
+  // If auth is loading or navigation state is not fully ready, show the loading spinner
+  if (loading || !navigationState?.key) {
+    return (
+      <View style={styles.container}>
+        <ActivityIndicator size="large" color="#1A56DB" />
+      </View>
+    );
+  }
 
-    const navigateToDashboard = async () => {
-      if (isAuthenticated && user) {
-        const roles = user.roles || [user.role] || [];
-        const userName = user.name || '';
-        const nameToCheck = userName.toLowerCase();
+  // Once ready, perform the redirect declaratively
+  if (isAuthenticated && user) {
+    const roles = user.roles || [user.role] || [];
+    const userName = user.name || '';
+    const nameToCheck = userName.toLowerCase();
 
-        const isDocRole = roles.some((r) =>
-          String(r).toLowerCase().includes('doctor'),
-        ) || nameToCheck.includes('doctor');
+    const isDocRole = roles.some((r) =>
+      String(r).toLowerCase().includes('doctor'),
+    ) || nameToCheck.includes('doctor');
 
-        const isAdminRole = roles.some((r) =>
-          String(r).toLowerCase().includes('admin') ||
-          String(r).toLowerCase().includes('administrator'),
-        ) || nameToCheck.includes('admin');
+    const isAdminRole = roles.some((r) =>
+      String(r).toLowerCase().includes('admin') ||
+      String(r).toLowerCase().includes('administrator'),
+    ) || nameToCheck.includes('admin');
 
-        if (isAdminRole) {
-          router.replace('/admin/dashboard');
-        } else if (isDocRole) {
-          router.replace('/doctor/dashboard');
-        } else {
-          router.replace('/user/dashboard');
-        }
-      } else {
-        router.replace('/(auth)/login');
-      }
-    };
+    if (isAdminRole) {
+      return <Redirect href="/admin/dashboard" />;
+    } else if (isDocRole) {
+      return <Redirect href="/doctor/dashboard" />;
+    } else {
+      return <Redirect href="/user/dashboard" />;
+    }
+  }
 
-    navigateToDashboard();
-  }, [loading, isAuthenticated, user]);
-
-  return (
-    <View style={styles.container}>
-      <ActivityIndicator size="large" color="#1A56DB" />
-    </View>
-  );
+  // If not authenticated, redirect to login
+  return <Redirect href="/login" />;
 }
 
 const styles = StyleSheet.create({
