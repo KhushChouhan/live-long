@@ -25,16 +25,6 @@ import { useAuth } from '../../store/AuthContext'
 
 // MSG91 OTP Widget SDK
 let OTPWidget = null
-/*
-try {
-  // Dynamically imported so the app doesn't crash if the package isn't installed
-  OTPWidget = require('@msg91comm/sendotp-react-native').OTPWidget
-} catch (_) {
-  console.warn(
-    '[MSG91] @msg91comm/sendotp-react-native not installed — widget disabled',
-  )
-}
-*/
 
 // Widget credentials (non-secret — safe to embed in client)
 const MSG91_WIDGET_ID = '3665416c557a323334313638'
