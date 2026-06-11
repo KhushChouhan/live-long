@@ -56,12 +56,110 @@ const CAMERA_JS = `
 })();
 `;
 
-function getRoomName(id) {
-  return `${ROOM_PREFIX}-${String(id).replace(/\s/g, '-')}`;
+// Runs AFTER page loads — hides Jitsi logo/watermark, hides login options, and auto-clicks "Join meeting"
+const POST_JS = `
+(function() {
+  // 1. Inject CSS to hide Jitsi branding and display names (to remove "Fellow Jitster")
+  var style = document.createElement('style');
+  style.textContent = [
+    '.leftwatermark, .rightwatermark, .watermark, #jitsi-meet-watermark, [class*="watermark"], a[class*="watermark"], div[class*="watermark"], svg[class*="watermark"], img[src*="watermark"] { display: none !important; visibility: hidden !important; opacity: 0 !important; width: 0 !important; height: 0 !important; }',
+    '#header-container { display: none !important; }',
+    '.premeeting-screen header { display: none !important; }',
+    '[class*="headerContainer"] { display: none !important; }',
+    'a[href*="jitsi"], img[src*="jitsi"] { display: none !important; }',
+    '.powered-by { display: none !important; }',
+    '.displayname { display: none !important; }',
+    '.display-name-container { display: none !important; }',
+    '[class*="displayName"] { display: none !important; }',
+    '[class*="participantName"] { display: none !important; }',
+    '.participant-name-label { display: none !important; }',
+    '#premeeting-screen { padding-top: 40px !important; }',
+    '.chrome-extension-banner { display: none !important; }'
+  ].join('');
+  (document.head || document.documentElement).appendChild(style);
+
+  // 2. Auto-click "Join meeting" so the user skips the pre-join screen
+  function tryJoin() {
+    var btns = Array.from(document.querySelectorAll('button'));
+    var joinBtn = btns.find(function(b) {
+      var t = (b.innerText || b.textContent || '').toLowerCase().trim();
+      return t === 'join meeting' || t === 'join' || t === 'enter';
+    });
+    if (joinBtn) {
+      joinBtn.click();
+    } else {
+      setTimeout(tryJoin, 600);
+    }
+  }
+  setTimeout(tryJoin, 1200);
+
+  // 3. Scan and hide login / sign-in / host authentication buttons
+  function hideLoginAndBrand() {
+    // Hide any buttons, links, or text containing "login" / "sign in" / "host"
+    var elements = document.querySelectorAll('button, a, div, span, p, img');
+    elements.forEach(function(el) {
+      // Check images/svgs containing Jitsi logo
+      if (el.tagName === 'IMG' && el.src) {
+        var src = el.src.toLowerCase();
+        if (src.indexOf('jitsi') > -1 || src.indexOf('logo') > -1 || src.indexOf('watermark') > -1) {
+          el.style.setProperty('display', 'none', 'important');
+        }
+      }
+      
+      var text = (el.innerText || el.textContent || '').toLowerCase().trim();
+      var isJoinBtn = text.indexOf('join') > -1 || text.indexOf('enter') > -1;
+      
+      if (!isJoinBtn && text.length > 0) {
+        if (
+          text === 'log in' || text === 'login' || text === 'sign in' || text === 'signin' ||
+          text.indexOf('i am the host') > -1 || text.indexOf('wait for the host') > -1 ||
+          text.indexOf('login to start') > -1 || text.indexOf('sign in to start') > -1 ||
+          (el.tagName === 'A' && el.getAttribute('href') && el.getAttribute('href').indexOf('login') > -1)
+        ) {
+          el.style.setProperty('display', 'none', 'important');
+        }
+      }
+    });
+
+    // 4. Inject LiveLong brand logo in place of Jitsi logo in top-left
+    var logoId = 'livelong-injected-logo';
+    if (!document.getElementById(logoId)) {
+      var container = document.createElement('div');
+      container.id = logoId;
+      container.style.cssText = 'position: absolute; top: 18px; left: 18px; z-index: 999999; pointer-events: none; background: rgba(10, 15, 30, 0.45); padding: 5px 8px; borderRadius: 6px;';
+      container.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 370 100" style="width: 100px; height: 27px;" fill="#00B3A4"><g transform="translate(0,100) scale(0.1,-0.1)" fill="#FFFFFF" stroke="none"><path d="M423 841 c-122 -45 -197 -139 -209 -262 -15 -160 39 -255 227 -400 91 -71 127 -94 137 -86 9 7 -9 31 -76 96 -118 114 -147 168 -147 276 0 74 3 84 33 132 39 61 74 84 156 108 58 17 154 17 198 0 16 -6 16 -4 7 24 -34 98 -205 157 -326 112z" fill="#0066FF"/><path d="M1496 684 c-9 -8 -16 -22 -16 -29 0 -7 7 -21 16 -29 30 -30 74 -13 74 29 0 42 -44 59 -74 29z"/><path d="M1200 465 l0 -215 125 0 125 0 0 30 0 29 -87 3 -88 3 -3 183 -2 182 -35 0 -35 0 0 -215z"/><path d="M2260 465 l0 -215 130 0 130 0 0 30 0 30 -90 0 -90 0 0 185 0 185 -40 0 -40 0 0 -215z"/><path d="M787 659 c-92 -22 -175 -88 -217 -174 -18 -38 -24 -67 -24 -120 -1 -38 4 -78 10 -88 9 -15 16 -8 54 49 46 69 192 224 211 224 6 0 -16 -29 -49 -65 -105 -115 -182 -248 -182 -313 0 -49 13 -55 46 -21 16 17 72 57 124 89 172 107 213 167 214 310 1 119 1 120 -81 119 -37 -1 -85 -5 -106 -10z" fill="#0066FF"/><path d="M1497 554 c-4 -4 -7 -74 -7 -156 l0 -148 40 0 41 0 -3 153 -3 152 -30 3 c-17 2 -34 0 -38 -4z"/><path d="M1610 553 c0 -4 23 -75 52 -156 l52 -148 45 3 45 3 48 135 c26 74 51 143 54 153 5 16 1 18 -33 15 l-38 -3 -35 -102 c-19 -56 -38 -104 -41 -107 -3 -3 -21 42 -40 101 l-35 108 -37 3 c-20 2 -37 0 -37 -5z"/><path d="M1992 540 c-89 -54 -81 -240 12 -284 61 -29 134 -18 175 25 32 35 28 52 -11 44 -18 -3 -45 -11 -60 -17 -39 -15 -75 -2 -93 32 -8 16 -15 31 -15 35 0 3 48 5 106 5 l106 0 -7 47 c-9 64 -29 99 -65 118 -41 21 -108 19 -148 -5z m122 -62 c29 -41 21 -48 -49 -48 -36 0 -65 2 -65 5 0 4 7 19 15 35 13 24 22 30 50 30 24 0 39 -7 49 -22z"/><path d="M2619 537 c-45 -30 -64 -71 -64 -137 1 -98 59 -160 150 -160 84 0 145 67 145 158 0 104 -53 162 -147 162 -36 0 -60 -7 -84 -23z m135 -59 c33 -54 26 -147 -14 -168 -58 -31 -110 11 -110 90 0 63 28 100 75 100 25 0 38 -6 49 -22z"/><path d="M2910 405 l0 -155 35 0 35 0 0 99 c0 84 3 102 21 125 23 29 60 34 83 10 13 -12 16 -39 16 -125 l0 -109 41 0 41 0 -4 118 c-6 156 -25 191 -104 192 -27 0 -50 -7 -67 -20 -14 -11 -28 -20 -31 -20 -3 0 -6 9 -6 20 0 16 -7 20 -30 20 l-30 0 0 -155z"/><path d="M3298 544 c-76 -40 -88 -182 -23 -253 30 -32 38 -36 84 -35 39 0 57 6 75 23 l24 23 -5 -44 c-3 -23 -12 -51 -21 -60 -21 -25 -77 -23 -102 2 -12 12 -33 20 -55 20 -40 0 -40 -1 -20 -39 40 -78 199 -81 250 -5 18 26 20 47 20 204 l0 175 -32 3 c-25 2 -33 -1 -33 -12 0 -20 -11 -20 -36 -1 -25 19 -91 18 -126 -1z m136 -66 c48 -78 5 -181 -68 -162 -61 15 -76 140 -22 176 24 17 75 8 90 -14z"/></g></svg>';
+      (document.body || document.documentElement).appendChild(container);
+    }
+  }
+  
+  hideLoginAndBrand();
+  // Run periodically to catch dynamic UI state changes
+  setInterval(hideLoginAndBrand, 500);
+
+  true;
+})();
+`;
+
+function getCleanRoomName(name) {
+  const n = String(name || '').toLowerCase();
+  if (n.includes('khushwant')) return 'khushwant';
+  if (n.includes('amit')) return 'amit';
+  if (n.includes('kiran')) return 'kiran';
+  if (n.includes('sneha')) return 'sneha';
+  if (n.includes('vikram')) return 'vikram';
+  return n.replace(/[^a-z0-9]/g, '');
 }
 
-function getJitsiUrl(apptId) {
-  const room = getRoomName(apptId);
+function getRoomName(patient) {
+  if (patient?.id) {
+    return `${ROOM_PREFIX}-${patient.id}`;
+  }
+  const clean = getCleanRoomName(patient?.name);
+  return `${ROOM_PREFIX}-${clean}`;
+}
+
+function getJitsiUrl(patient) {
+  const room = getRoomName(patient);
   const name = encodeURIComponent('Dr. Lawrence');
   const params = [
     'config.prejoinPageEnabled=false',
@@ -72,6 +170,10 @@ function getJitsiUrl(apptId) {
     'config.requireDisplayName=false',
     'config.enableUserRolesBasedOnToken=false',
     'config.disableInviteFunctions=true',
+    'config.defaultRemoteDisplayName=%22Patient%22',
+    'config.watermark.enabled=false',
+    'config.logoClickUrl=%22%22',
+    'config.logoImageUrl=%22%22',
     'interfaceConfig.SHOW_JITSI_WATERMARK=false',
     'interfaceConfig.SHOW_WATERMARK_FOR_GUESTS=false',
     'interfaceConfig.SHOW_BRAND_WATERMARK=false',
@@ -158,7 +260,7 @@ export default function VideoScreen() {
   // ── Active call — WebView with Jitsi ──
   if (videoCall.isActive) {
     const patient = videoCall.patient;
-    const jitsiUrl = getJitsiUrl(patient?.id || 'room');
+    const jitsiUrl = getJitsiUrl(patient);
 
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }}>
@@ -195,6 +297,7 @@ export default function VideoScreen() {
           useWideViewPort={true}
           mixedContentMode="always"
           injectedJavaScriptBeforeContentLoaded={CAMERA_JS}
+          injectedJavaScript={POST_JS}
           onPermissionRequest={(event) => {
             event.request.grant(event.request.resources);
           }}
@@ -219,11 +322,11 @@ export default function VideoScreen() {
           </View>
           <Text style={{ fontSize: 18, fontWeight: '800', color: '#0F172A' }}>Video Consultation Room</Text>
           <Text style={{ fontSize: 12, color: '#64748B', textAlign: 'center', marginTop: 6, lineHeight: 18 }}>
-            Powered by Jitsi Meet • Free • No account needed
+            Secure Video Consultations • LiveLong Platform
           </Text>
           <View style={{ flexDirection: 'row', gap: 8, marginTop: 14, flexWrap: 'wrap', justifyContent: 'center' }}>
             <Chip icon={<ShieldCheck size={12} color="#10B981" />} label="Encrypted"  color="#10B981" bg="#F0FDF4" />
-            <Chip icon={<Users       size={12} color="#10B981" />} label="Jitsi Meet" color="#10B981" bg="#ECFDF5" />
+            <Chip icon={<Users       size={12} color="#10B981" />} label="Secure RTC" color="#10B981" bg="#ECFDF5" />
             <Chip icon={<Wifi        size={12} color="#10B981" />} label="100% Free"  color="#10B981" bg="#F0FDF4" />
             <Chip icon={<Clock       size={12} color="#8B5CF6" />} label="No API Key" color="#8B5CF6" bg="#EDE9FE" />
           </View>
@@ -277,10 +380,10 @@ export default function VideoScreen() {
         {/* Footer */}
         <View style={{ marginTop: 12, padding: 14, backgroundColor: '#F0FDF4', borderRadius: 12, borderWidth: 1, borderColor: '#BBF7D0', width: '100%' }}>
           <Text style={{ fontSize: 10, fontWeight: '700', color: '#065F46', marginBottom: 3 }}>
-            {'🟢 Jitsi Meet — Free, Open Source, WebRTC'}
+            {'🟢 Secure LiveLong Telehealth Connection'}
           </Text>
           <Text style={{ fontSize: 10, color: '#059669' }}>
-            {'Server: meet.jit.si  •  No API key needed  •  Works globally'}
+            {'Fully encrypted WebRTC  •  No account required  •  Works globally'}
           </Text>
         </View>
       </ScrollView>

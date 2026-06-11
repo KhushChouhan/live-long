@@ -37,7 +37,9 @@ export default function DoctorAppointmentListScreen() {
     rescheduleAppointment, 
     cancelAppointment, 
     bulkRescheduleRemaining,
-    notifyPatient
+    notifyPatient,
+    TODAY_STR,
+    TOMORROW_STR
   } = useDoctor();
 
   // Search and filter states
@@ -103,14 +105,17 @@ export default function DoctorAppointmentListScreen() {
   // Filter logic
   const filteredAppointments = appointments.filter(appt => {
     // 1. Date Filter
-    if (appt.date !== activeDateTab) return false;
+    if (activeDateTab === 'Today' && appt.date !== TODAY_STR) return false;
+    if (activeDateTab === 'Tomorrow' && appt.date !== TOMORROW_STR) return false;
+    if (activeDateTab === 'Upcoming' && (appt.date === TODAY_STR || appt.date === TOMORROW_STR)) return false;
 
     // 2. Type Filter
-    if (activeTypeFilter !== 'All' && appt.type !== activeTypeFilter) return false;
+    if (activeTypeFilter !== 'All' && appt.type?.toLowerCase() !== activeTypeFilter.toLowerCase()) return false;
 
     // 3. Search Query
+    const serviceName = appt.service || appt.complaint || '';
     const matchesSearch = appt.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          appt.service.toLowerCase().includes(searchQuery.toLowerCase());
+                          serviceName.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesSearch;
   });
 
@@ -246,8 +251,8 @@ export default function DoctorAppointmentListScreen() {
                   <View className="flex-row justify-between items-center">
                     <View className="flex-1 flex-row items-center gap-3">
                       {/* Format icon indicator */}
-                      <View className={`w-9 h-9 rounded-full border items-center justify-center ${appt.type === 'video' ? 'bg-cyan-50 border-cyan-150' : 'bg-indigo-50 border-indigo-150'}`}>
-                        {appt.type === 'video' ? (
+                      <View className={`w-9 h-9 rounded-full border items-center justify-center ${appt.type?.toLowerCase() === 'video' ? 'bg-cyan-50 border-cyan-150' : 'bg-indigo-50 border-indigo-150'}`}>
+                        {appt.type?.toLowerCase() === 'video' ? (
                           <Video size={16} color="#0891b2" />
                         ) : (
                           <MapPin size={16} color="#4f46e5" />
@@ -260,9 +265,9 @@ export default function DoctorAppointmentListScreen() {
                             {appt.name}
                           </Text>
 
-                          <View className={`px-1.5 py-0.5 rounded-md ${appt.type === 'video' ? 'bg-cyan-50' : 'bg-indigo-50'}`}>
-                            <Text className={`text-[7px] font-black uppercase ${appt.type === 'video' ? 'text-cyan-700' : 'text-indigo-700'}`}>
-                              {appt.type === 'video' ? 'Video' : 'Clinic'}
+                          <View className={`px-1.5 py-0.5 rounded-md ${appt.type?.toLowerCase() === 'video' ? 'bg-cyan-50' : 'bg-indigo-50'}`}>
+                            <Text className={`text-[7px] font-black uppercase ${appt.type?.toLowerCase() === 'video' ? 'text-cyan-700' : 'text-indigo-700'}`}>
+                              {appt.type?.toLowerCase() === 'video' ? 'Video' : 'Clinic'}
                             </Text>
                           </View>
                         </View>
@@ -273,7 +278,7 @@ export default function DoctorAppointmentListScreen() {
                             {appt.time} • {appt.date}
                           </Text>
                         </View>
-                        <Text className="text-slate-500 text-[10px] font-semibold mt-0.5">{appt.service}</Text>
+                        <Text className="text-slate-500 text-[10px] font-semibold mt-0.5">{appt.service || appt.complaint || 'General Consultation'}</Text>
                       </View>
                     </View>
 

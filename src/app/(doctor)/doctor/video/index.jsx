@@ -77,6 +77,16 @@ function AppointmentCard({ appt, onJoin, index }) {
   );
 }
 
+const getCleanRoomName = (name) => {
+  const n = String(name || '').toLowerCase();
+  if (n.includes('khushwant')) return 'khushwant';
+  if (n.includes('amit')) return 'amit';
+  if (n.includes('kiran')) return 'kiran';
+  if (n.includes('sneha')) return 'sneha';
+  if (n.includes('vikram')) return 'vikram';
+  return n.replace(/[^a-z0-9]/g, '');
+};
+
 // ─── MAIN SCREEN ──────────────────────────────────────────────────────────────
 export default function VideoScreen() {
   const { videoCall, endVideoConsult, startVideoConsult, appointments } = useDoctor();
@@ -87,8 +97,9 @@ export default function VideoScreen() {
   useEffect(() => {
     if (videoCall.isActive && typeof window !== 'undefined') {
       const patient = videoCall.patient;
-      const room = `livelong-consult-${String(patient?.id || 'room').replace(/\s/g, '-')}`;
-      const jitsiUrl = `https://meet.jit.si/${room}#config.prejoinPageEnabled=false&config.prejoinConfig.enabled=false&config.startWithAudioMuted=false&config.startWithVideoMuted=false&config.disableDeepLinking=true&config.requireDisplayName=false&config.enableUserRolesBasedOnToken=false&config.disableInviteFunctions=true&interfaceConfig.SHOW_JITSI_WATERMARK=false&interfaceConfig.SHOW_WATERMARK_FOR_GUESTS=false&userInfo.displayName=Dr.%20Lawrence&userInfo.moderator=true`;
+      const clean = getCleanRoomName(patient?.name);
+      const room = `livelong-consult-${patient?.id || clean}`;
+      const jitsiUrl = `https://meet.jit.si/${room}#config.prejoinPageEnabled=false&config.prejoinConfig.enabled=false&config.startWithAudioMuted=false&config.startWithVideoMuted=false&config.disableDeepLinking=true&config.requireDisplayName=false&config.enableUserRolesBasedOnToken=false&config.disableInviteFunctions=true&config.defaultRemoteDisplayName="Patient"&interfaceConfig.SHOW_JITSI_WATERMARK=false&interfaceConfig.SHOW_WATERMARK_FOR_GUESTS=false&userInfo.displayName=Dr.%20Lawrence&userInfo.moderator=true`;
       window.open(jitsiUrl, '_blank');
     }
   }, [videoCall.isActive, videoCall.patient]);
@@ -126,8 +137,9 @@ export default function VideoScreen() {
   // ── ACTIVE CALL ──────────────────────────────────────────────────────────────
   if (videoCall.isActive) {
     const patient = videoCall.patient;
-    const room = `livelong-consult-${String(patient?.id || 'room').replace(/\s/g, '-')}`;
-    const jitsiUrl = `https://meet.ffmuc.net/${room}#config.prejoinPageEnabled=false&config.startWithAudioMuted=false&config.startWithVideoMuted=false&config.disableDeepLinking=true&config.requireDisplayName=false&config.enableUserRolesBasedOnToken=false&config.disableInviteFunctions=true&userInfo.displayName=Dr.%20Lawrence&userInfo.moderator=true`;
+    const clean = getCleanRoomName(patient?.name);
+    const room = `livelong-consult-${patient?.id || clean}`;
+    const jitsiUrl = `https://meet.jit.si/${room}#config.prejoinPageEnabled=false&config.prejoinConfig.enabled=false&config.startWithAudioMuted=false&config.startWithVideoMuted=false&config.disableDeepLinking=true&config.requireDisplayName=false&config.enableUserRolesBasedOnToken=false&config.disableInviteFunctions=true&config.defaultRemoteDisplayName="Patient"&interfaceConfig.SHOW_JITSI_WATERMARK=false&interfaceConfig.SHOW_WATERMARK_FOR_GUESTS=false&userInfo.displayName=Dr.%20Lawrence&userInfo.moderator=true`;
 
     return (
       <View style={{ flex:1, backgroundColor:'#111827', position:'relative' }}>

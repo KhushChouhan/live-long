@@ -3,11 +3,12 @@ export async function POST(request) {
     const body = await request.json();
 
     const response = await fetch(
-      'https://uat.live-long.app/user/login?_format=json',
+      'https://live-long.app/user/login?_format=json',
       {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
         },
         body: JSON.stringify(body),
       },

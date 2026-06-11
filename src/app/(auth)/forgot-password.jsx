@@ -18,6 +18,7 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import api from '../../services/api';
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 //   COLOR PALETTE
@@ -93,6 +94,7 @@ const FormInput = React.memo(({ label, iconName, isPassword, ...props }) => {
     </View>
   );
 });
+FormInput.displayName = 'FormInput';
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 //   MAIN COMPONENT
@@ -100,6 +102,10 @@ const FormInput = React.memo(({ label, iconName, isPassword, ...props }) => {
 export default function ForgotPasswordScreen() {
   // ── State ──────────────────────────────────────────
   const [email, setEmail] = useState('');
+  const [step, setStep] = useState(1); // 1 = request OTP, 2 = verify OTP & reset password
+  const [otp, setOtp] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
@@ -156,7 +162,7 @@ export default function ForgotPasswordScreen() {
   }, [fadeAnims, slideAnims, btnScaleAnim]);
 
   // ── Handlers ───────────────────────────────────────
-  const handleResetPassword = useCallback(async () => {
+  const handleRequestOTP = useCallback(async () => {
     Keyboard.dismiss();
     setErrorMessage('');
     setSuccessMessage('');
@@ -168,42 +174,67 @@ export default function ForgotPasswordScreen() {
 
     setIsLoading(true);
     try {
-      const apiUrl = Platform.OS === 'web'
-        ? '/api/user/lostpassword'
-        : 'https://uat.live-long.app/user/lostpassword?_format=json';
-
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-        },
-        body: JSON.stringify({
-          name: email,
-        }),
+      const response = await api.post('/auth/forgot-password', {
+        email: email.trim(),
       });
 
-      const responseText = await response.text();
-      let data;
-      try {
-        data = JSON.parse(responseText);
-      } catch (e) {
-        // Drupal might return an empty 200 OK for lost password or non-JSON
-        console.log('Response text:', responseText);
-      }
-
-      if (response.ok) {
-        setSuccessMessage('If an account exists, a reset link has been sent.');
+      if (response.data && response.data.success) {
+        setSuccessMessage(response.data.message || 'OTP sent successfully!');
+        setStep(2);
       } else {
-        setErrorMessage(data?.message || 'An error occurred. Please try again.');
+        setErrorMessage(response.data?.message || 'Failed to send OTP. Please try again.');
       }
     } catch (error) {
-      console.error('Network catch error:', error);
-      setErrorMessage('Network error. Please try again.');
+      console.error('[RequestOTP] Error:', error.response?.data || error.message);
+      const msg = error.response?.data?.message || 'No account registered with this email or username.';
+      setErrorMessage(msg);
     } finally {
       setIsLoading(false);
     }
   }, [email]);
+
+  const handleResetPassword = useCallback(async () => {
+    Keyboard.dismiss();
+    setErrorMessage('');
+    setSuccessMessage('');
+
+    if (!otp.trim()) {
+      setErrorMessage('Please enter the OTP sent to your phone.');
+      return;
+    }
+    if (!newPassword.trim()) {
+      setErrorMessage('Please enter a new password.');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setErrorMessage('Passwords do not match.');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await api.post('/auth/reset-password', {
+        email: email.trim(),
+        otp: otp.trim(),
+        newPassword: newPassword.trim(),
+      });
+
+      if (response.data && response.data.success) {
+        setSuccessMessage('Password reset successfully! Redirecting to login...');
+        setTimeout(() => {
+          router.replace('/login');
+        }, 1500);
+      } else {
+        setErrorMessage(response.data?.message || 'Failed to reset password. Please try again.');
+      }
+    } catch (error) {
+      console.error('[ResetPassword] Error:', error.response?.data || error.message);
+      const msg = error.response?.data?.message || 'Failed to reset password. Please verify the OTP.';
+      setErrorMessage(msg);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [email, otp, newPassword, confirmPassword]);
 
   const handlePressIn = useCallback(() => {
     Animated.spring(btnPressScale, {
@@ -262,8 +293,12 @@ export default function ForgotPasswordScreen() {
             style={[styles.formCard, { opacity: fadeAnims[2], transform: [{ translateY: slideAnims[2] }] }]}
           >
             <View style={styles.cardHeader}>
-              <Text style={styles.cardTitle}>Reset Password</Text>
-              <Text style={styles.cardSubtitle}>Enter your email to receive a reset link</Text>
+              <Text style={styles.cardTitle}>{step === 1 ? 'Reset Password' : 'Enter OTP Code'}</Text>
+              <Text style={styles.cardSubtitle}>
+                {step === 1
+                  ? 'Enter your username/email to receive a reset OTP code'
+                  : 'Check your registered mobile number for the OTP'}
+              </Text>
             </View>
 
             {errorMessage ? (
@@ -282,53 +317,130 @@ export default function ForgotPasswordScreen() {
               </View>
             ) : null}
 
-            <FormInput
-              label="Username / Email"
-              iconName="mail-outline"
-              placeholder="Enter your email or username"
-              autoCapitalize="none"
-              autoCorrect={false}
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-            />
+            {step === 1 ? (
+              <>
+                <FormInput
+                  label="Username / Email"
+                  iconName="mail-outline"
+                  placeholder="Enter your email or username"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  value={email}
+                  onChangeText={setEmail}
+                  keyboardType="email-address"
+                />
 
-            {/* Reset Button */}
-            <Animated.View
-              style={{
-                marginTop: 12,
-                opacity: fadeAnims[3],
-                transform: [{ scale: Animated.multiply(btnScaleAnim, btnPressScale) }],
-              }}
-            >
-              <TouchableOpacity
-                onPressIn={handlePressIn}
-                onPressOut={handlePressOut}
-                onPress={handleResetPassword}
-                disabled={isLoading}
-                activeOpacity={1}
-                accessibilityRole="button"
-                accessibilityState={{ disabled: isLoading, busy: isLoading }}
-              >
-                <View style={styles.primaryBtn}>
-                  {isLoading ? (
-                    <>
-                      <ActivityIndicator size="small" color={COLORS.white} />
-                      <Text style={[styles.primaryBtnText, { fontSize: 15 }]}>Sending link...</Text>
-                    </>
-                  ) : (
-                    <>
-                      <Icon name="send-outline" size={20} color={COLORS.white} />
-                      <Text style={styles.primaryBtnText}>Send Reset Link</Text>
-                    </>
-                  )}
-                </View>
-              </TouchableOpacity>
-            </Animated.View>
+                {/* Send OTP Button */}
+                <Animated.View
+                  style={{
+                    marginTop: 12,
+                    opacity: fadeAnims[3],
+                    transform: [{ scale: Animated.multiply(btnScaleAnim, btnPressScale) }],
+                  }}
+                >
+                  <TouchableOpacity
+                    onPressIn={handlePressIn}
+                    onPressOut={handlePressOut}
+                    onPress={handleRequestOTP}
+                    disabled={isLoading}
+                    activeOpacity={1}
+                    accessibilityRole="button"
+                    accessibilityState={{ disabled: isLoading, busy: isLoading }}
+                  >
+                    <View style={styles.primaryBtn}>
+                      {isLoading ? (
+                        <>
+                          <ActivityIndicator size="small" color={COLORS.white} />
+                          <Text style={[styles.primaryBtnText, { fontSize: 15 }]}>Sending OTP...</Text>
+                        </>
+                      ) : (
+                        <>
+                          <Icon name="send-outline" size={20} color={COLORS.white} />
+                          <Text style={styles.primaryBtnText}>Send Reset OTP</Text>
+                        </>
+                      )}
+                    </View>
+                  </TouchableOpacity>
+                </Animated.View>
+              </>
+            ) : (
+              <>
+                <FormInput
+                  label="OTP Code"
+                  iconName="key-outline"
+                  placeholder="Enter the 6-digit OTP"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  value={otp}
+                  onChangeText={setOtp}
+                  keyboardType="number-pad"
+                  maxLength={6}
+                />
+
+                <FormInput
+                  label="New Password"
+                  iconName="lock-closed-outline"
+                  placeholder="Enter new password"
+                  isPassword={true}
+                  value={newPassword}
+                  onChangeText={setNewPassword}
+                />
+
+                <FormInput
+                  label="Confirm Password"
+                  iconName="lock-closed-outline"
+                  placeholder="Confirm new password"
+                  isPassword={true}
+                  value={confirmPassword}
+                  onChangeText={setConfirmPassword}
+                />
+
+                {/* Reset Password Button */}
+                <Animated.View
+                  style={{
+                    marginTop: 12,
+                    opacity: fadeAnims[3],
+                    transform: [{ scale: Animated.multiply(btnScaleAnim, btnPressScale) }],
+                  }}
+                >
+                  <TouchableOpacity
+                    onPressIn={handlePressIn}
+                    onPressOut={handlePressOut}
+                    onPress={handleResetPassword}
+                    disabled={isLoading}
+                    activeOpacity={1}
+                    accessibilityRole="button"
+                    accessibilityState={{ disabled: isLoading, busy: isLoading }}
+                  >
+                    <View style={styles.primaryBtn}>
+                      {isLoading ? (
+                        <>
+                          <ActivityIndicator size="small" color={COLORS.white} />
+                          <Text style={[styles.primaryBtnText, { fontSize: 15 }]}>Resetting password...</Text>
+                        </>
+                      ) : (
+                        <>
+                          <Icon name="checkmark-circle-outline" size={20} color={COLORS.white} />
+                          <Text style={styles.primaryBtnText}>Reset Password</Text>
+                        </>
+                      )}
+                    </View>
+                  </TouchableOpacity>
+                </Animated.View>
+
+                <TouchableOpacity
+                  activeOpacity={0.7}
+                  style={styles.backBtn}
+                  onPress={() => { setStep(1); setErrorMessage(''); setSuccessMessage(''); }}
+                >
+                  <Text style={styles.backBtnText}>← Change Username / Email</Text>
+                </TouchableOpacity>
+              </>
+            )}
 
             <TouchableOpacity
               activeOpacity={0.7}
-              style={styles.backBtn}
+              style={[styles.backBtn, { marginTop: step === 1 ? 24 : 12 }]}
               onPress={() => router.replace('/login')}
             >
               <Text style={styles.backBtnText}>Back to Sign In</Text>

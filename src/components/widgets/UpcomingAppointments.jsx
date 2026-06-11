@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
+import { useRouter } from 'expo-router';
 
 const AppointmentItem = ({ name, date, waitlist, checkupDuration }) => (
   <View className="flex-row flex-wrap items-center justify-between py-4 border-b border-slate-100">
@@ -19,8 +20,6 @@ const AppointmentItem = ({ name, date, waitlist, checkupDuration }) => (
     </View>
   </View>
 );
-
-import { useRouter } from 'expo-router';
 
 export default function UpcomingAppointments() {
   const router = useRouter();

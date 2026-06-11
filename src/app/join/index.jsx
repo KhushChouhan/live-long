@@ -8,14 +8,22 @@ import { PhoneOff, CheckCircle, AlertCircle, Video, ExternalLink } from 'lucide-
 
 function buildJitsiUrl(room, displayName = 'Patient') {
   return (
-    `https://meet.ffmuc.net/${room}` +
+    `https://meet.jit.si/${room}` +
     `#config.prejoinPageEnabled=false` +
+    `&config.prejoinConfig.enabled=false` +
     `&config.startWithAudioMuted=false` +
     `&config.startWithVideoMuted=false` +
     `&config.disableDeepLinking=true` +
     `&config.requireDisplayName=false` +
     `&config.enableUserRolesBasedOnToken=false` +
     `&config.disableInviteFunctions=true` +
+    `&config.watermark.enabled=false` +
+    `&config.logoClickUrl=""` +
+    `&config.logoImageUrl=""` +
+    `&config.defaultRemoteDisplayName="Doctor"` +
+    `&interfaceConfig.SHOW_JITSI_WATERMARK=false` +
+    `&interfaceConfig.SHOW_WATERMARK_FOR_GUESTS=false` +
+    `&interfaceConfig.SHOW_BRAND_WATERMARK=false` +
     `&userInfo.displayName=${encodeURIComponent(displayName)}`
   );
 }
@@ -31,7 +39,17 @@ export default function PatientJoinPage() {
     const room = params.get('room');
     if (room) {
       const apptId = room.includes('livelong-doctor-') ? room.replace('livelong-doctor-', '') : room;
-      const jitsiRoom = `livelong-consult-${apptId}`;
+
+      let targetRoom = apptId;
+      if (apptId === '3' || apptId === 'chinu') {
+        targetRoom = '77';
+      } else if (apptId === 'karan' || apptId === '6') {
+        targetRoom = '66';
+      } else if (apptId === '5') {
+        targetRoom = '55';
+      }
+
+      const jitsiRoom = `livelong-consult-${targetRoom}`;
       const url = buildJitsiUrl(jitsiRoom, 'Patient');
       setJitsiUrl(url);
       setStatus('connected');
