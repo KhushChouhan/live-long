@@ -102,7 +102,7 @@ export const AuthProvider = ({ children }) => {
       console.error('[sendOTP] Error:', err.message);
       console.error('[sendOTP] Code:', err.code);
       console.error('[sendOTP] Response:', err.response?.data);
-      console.error('[sendOTP] URL:', err.config?.baseURL + err.config?.url);
+      console.error('[sendOTP] URL:', err.config ? (err.config.baseURL || '') + (err.config.url || '') : 'No config available');
 
       // Network error = server not reached (server stopped or incorrect IP)
       if (err.code === 'ECONNABORTED' || err.code === 'ERR_NETWORK' || !err.response) {

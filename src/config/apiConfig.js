@@ -18,6 +18,10 @@ export const getApiBaseUrl = () => {
   // Automatically get IP from Expo Metro
   const hostUri = Constants.expoConfig?.hostUri;
   if (hostUri) {
+    if (hostUri.includes('ngrok') || hostUri.includes('exp.direct') || hostUri.includes('tunnel')) {
+      console.log('[API Config] Expo tunnel detected. Using production API fallback:', `${PRODUCTION_API_URL}/api`);
+      return `${PRODUCTION_API_URL}/api`;
+    }
     const ip = hostUri.split(':')[0];
     return `http://${ip}:5000/api`;
   }
@@ -41,6 +45,9 @@ export const getWsBaseUrl = () => {
 
   const hostUri = Constants.expoConfig?.hostUri;
   if (hostUri) {
+    if (hostUri.includes('ngrok') || hostUri.includes('exp.direct') || hostUri.includes('tunnel')) {
+      return PRODUCTION_WS_URL;
+    }
     const ip = hostUri.split(':')[0];
     return `ws://${ip}:5000`;
   }
@@ -51,3 +58,4 @@ export const getWsBaseUrl = () => {
 
   return 'ws://localhost:5000';
 };
+
