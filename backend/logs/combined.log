@@ -6028,3 +6028,51 @@
 {"level":"info","message":"POST /api/auth/login - IP: 10.101.159.216","timestamp":"2026-06-12 10:36:11"}
 {"level":"info","message":"User logged in: doctor@livelong.com","timestamp":"2026-06-12 10:36:11"}
 {"level":"info","message":"[WS] Client disconnected. Total clients: 0","timestamp":"2026-06-12 10:42:30"}
+{"level":"info","message":"GET / - IP: 127.0.0.1","timestamp":"2026-06-12 11:10:25"}
+{"level":"info","message":"GET / - IP: 127.0.0.1","timestamp":"2026-06-12 11:10:28"}
+{"level":"info","message":"GET / - IP: 127.0.0.1","timestamp":"2026-06-12 11:10:28"}
+{"level":"info","message":"GET / - IP: 127.0.0.1","timestamp":"2026-06-12 11:10:29"}
+{"level":"info","message":"GET / - IP: 127.0.0.1","timestamp":"2026-06-12 11:10:29"}
+{"level":"info","message":"Connecting to MongoDB database...","timestamp":"2026-06-12 12:20:23"}
+{"level":"info","message":"MongoDB database connection established successfully.","timestamp":"2026-06-12 12:20:53"}
+{"level":"info","message":"Database connection established successfully.","timestamp":"2026-06-12 12:20:53"}
+{"level":"info","message":"Resetting and seeding mock database patient data...","timestamp":"2026-06-12 12:20:53"}
+{"beforeHandshake":false,"cause":{"code":"ECONNRESET","errno":-4077,"syscall":"read"},"errorLabelSet":{},"level":"error","message":"Failed to seed mock database: read ECONNRESET","stack":"MongoNetworkError: read ECONNRESET\n    at Connection.onSocketError (C:\\Users\\s\\Desktop\\live-long\\live-long\\backend\\node_modules\\mongoose\\node_modules\\mongodb\\lib\\cmap\\connection.js:124:22)\n    at TLSSocket.emit (node:events:520:35)\n    at emitErrorNT (node:internal/streams/destroy:170:8)\n    at emitErrorCloseNT (node:internal/streams/destroy:129:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:89:21)","timestamp":"2026-06-12 12:21:21"}
+{"level":"info","message":"Server running in [development] mode on port 5000","timestamp":"2026-06-12 12:21:21"}
+{"level":"info","message":"Local   : http://localhost:5000","timestamp":"2026-06-12 12:21:21"}
+{"level":"info","message":"Network : http://10.101.159.174:5000 ","timestamp":"2026-06-12 12:21:21"}
+{"level":"info","message":"[WS] Client connected. Total clients: 1","timestamp":"2026-06-12 12:21:22"}
+{"level":"info","message":"[WS] Client connected. Total clients: 2","timestamp":"2026-06-12 12:21:24"}
+{"level":"info","message":"POST /api/auth/login - IP: 127.0.0.1","timestamp":"2026-06-12 12:21:36"}
+{"level":"info","message":"POST /api/auth/login - IP: 127.0.0.1","timestamp":"2026-06-12 12:22:22"}
+{"level":"info","message":"User logged in: doctor@livelong.com","timestamp":"2026-06-12 12:22:41"}
+{"level":"info","message":"User logged in: doctor@livelong.com","timestamp":"2026-06-12 12:22:42"}
+{"level":"info","message":"POST /api/auth/login - IP: 127.0.0.1","timestamp":"2026-06-12 12:22:45"}
+{"level":"info","message":"User logged in: doctor@livelong.com","timestamp":"2026-06-12 12:22:48"}
+{"level":"info","message":"POST /api/auth/login - IP: 10.101.159.216","timestamp":"2026-06-12 12:23:03"}
+{"level":"info","message":"POST /api/auth/refresh-token - IP: 10.101.159.216","timestamp":"2026-06-12 12:23:04"}
+{"level":"info","message":"POST /api/auth/login - IP: 10.101.159.216","timestamp":"2026-06-12 12:23:04"}
+{"level":"info","message":"POST /api/auth/login - IP: 10.101.159.216","timestamp":"2026-06-12 12:23:28"}
+{"level":"info","message":"POST /api/auth/refresh-token - IP: 10.101.159.216","timestamp":"2026-06-12 12:23:29"}
+{"level":"info","message":"POST /api/auth/login - IP: 10.101.159.216","timestamp":"2026-06-12 12:23:31"}
+{"level":"info","message":"POST /api/auth/login - IP: 10.101.159.216","timestamp":"2026-06-12 12:24:12"}
+{"level":"info","message":"POST /api/auth/refresh-token - IP: 10.101.159.216","timestamp":"2026-06-12 12:24:15"}
+{"level":"info","message":"POST /api/auth/login - IP: 10.101.159.216","timestamp":"2026-06-12 12:24:27"}
+{"level":"info","message":"POST /api/auth/login - IP: 10.101.159.216","timestamp":"2026-06-12 12:24:58"}
+{"level":"info","message":"POST /api/auth/refresh-token - IP: 10.101.159.216","timestamp":"2026-06-12 12:24:59"}
+{"level":"info","message":"POST /api/auth/login - IP: 10.101.159.216","timestamp":"2026-06-12 12:24:59"}
+{"level":"info","message":"POST /api/auth/login - IP: 10.101.159.216","timestamp":"2026-06-12 12:25:46"}
+{"level":"info","message":"User logged in: doctor@livelong.com","timestamp":"2026-06-12 12:25:46"}
+{"level":"info","message":"[WS] Client disconnected. Total clients: 1","timestamp":"2026-06-12 12:26:01"}
+{"level":"info","message":"POST /api/auth/send-otp - IP: 10.101.159.216","timestamp":"2026-06-12 12:26:05"}
+{"level":"info","message":"[WS] Client connected. Total clients: 2","timestamp":"2026-06-12 12:26:06"}
+{"level":"info","message":"POST /api/auth/send-otp - IP: 10.101.159.216","timestamp":"2026-06-12 12:26:13"}
+{"level":"info","message":"POST /api/auth/send-otp - IP: 10.101.159.216","timestamp":"2026-06-12 12:26:22"}
+{"level":"info","message":"POST /api/auth/send-otp - IP: 10.101.159.216","timestamp":"2026-06-12 12:26:23"}
+{"level":"info","message":"POST /api/auth/send-otp - IP: 10.101.159.216","timestamp":"2026-06-12 12:26:26"}
+{"level":"info","message":"POST /api/auth/send-otp - IP: 10.101.159.216","timestamp":"2026-06-12 12:26:37"}
+{"level":"info","message":"POST /api/auth/login - IP: 10.101.159.216","timestamp":"2026-06-12 12:26:56"}
+{"level":"info","message":"User logged in: doctor@livelong.com","timestamp":"2026-06-12 12:26:57"}
+{"level":"info","message":"[WS] Client disconnected. Total clients: 1","timestamp":"2026-06-12 12:30:36"}
+{"level":"info","message":"[WS] Client disconnected. Total clients: 0","timestamp":"2026-06-12 12:31:37"}
+{"level":"info","message":"[WS] Client connected. Total clients: 1","timestamp":"2026-06-12 12:31:45"}

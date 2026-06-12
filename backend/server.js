@@ -448,10 +448,8 @@ const startServer = async () => {
     await connectDB();
     logger.info('Database connection established successfully.');
 
-    // Seed/Ensure mock database in development environment
-    if (config.env === 'development') {
-      await seedMockDatabase();
-    }
+    // Seed/Ensure mock database (safe to run always — ensureUser prevents duplicates)
+    await seedMockDatabase();
 
     // 0.0.0.0 = sabhi interfaces pe suno (phone bhi connect kar sake)
     const server = app.listen(config.port, '0.0.0.0', () => {
