@@ -2,8 +2,8 @@ import { Platform } from 'react-native';
 import Constants from 'expo-constants';
 
 // Update these URLs with your deployed backend server URL (e.g. Render, Railway, VPS)
-export const PRODUCTION_API_URL = 'https://livelong-api.onrender.com';
-export const PRODUCTION_WS_URL = 'wss://livelong-api.onrender.com';
+export const PRODUCTION_API_URL = 'https://live-long.onrender.com';
+export const PRODUCTION_WS_URL = 'wss://live-long.onrender.com';
 
 export const getApiBaseUrl = () => {
   if (!__DEV__) {
