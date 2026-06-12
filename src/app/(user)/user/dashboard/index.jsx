@@ -188,7 +188,11 @@ export default function UserDashboard() {
 
   useEffect(() => {
     if (chatScrollRef.current) {
-      setTimeout(() => chatScrollRef.current.scrollToEnd({ animated: true }), 100);
+      setTimeout(() => {
+        if (chatScrollRef.current) {
+          chatScrollRef.current.scrollToEnd({ animated: true });
+        }
+      }, 100);
     }
   }, [patientMsgs.length, chatOpen]);
 

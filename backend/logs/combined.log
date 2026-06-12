@@ -6240,3 +6240,30 @@
 {"level":"info","message":"[WS] Received message: {\"type\":\"join\",\"role\":\"doctor\",\"userId\":\"11111111-1111-1111-1111-111111111111\",\"phone\":\"+919876543210\"}","timestamp":"2026-06-12 16:26:56"}
 {"level":"info","message":"[WS] Client registered: role=doctor, userId=11111111-1111-1111-1111-111111111111, phone=9876543210","timestamp":"2026-06-12 16:26:56"}
 {"level":"info","message":"[WS] Client connected. Total clients: 3","timestamp":"2026-06-12 16:27:00"}
+{"level":"info","message":"[WS] Client disconnected. Total clients: 2","timestamp":"2026-06-12 16:28:23"}
+{"level":"info","message":"[WS] Client disconnected. Total clients: 1","timestamp":"2026-06-12 16:28:23"}
+{"level":"info","message":"[WS] Client connected. Total clients: 2","timestamp":"2026-06-12 16:28:52"}
+{"level":"info","message":"[WS] Client disconnected. Total clients: 1","timestamp":"2026-06-12 16:28:52"}
+{"level":"info","message":"[WS] Client connected. Total clients: 2","timestamp":"2026-06-12 16:28:52"}
+{"level":"info","message":"[WS] Received message: {\"type\":\"join\",\"role\":\"patient\",\"userId\":\"66666666-6666-6666-6666-666666666666\",\"phone\":\"+918890204260\"}","timestamp":"2026-06-12 16:28:52"}
+{"level":"info","message":"[WS] Client registered: role=patient, userId=66666666-6666-6666-6666-666666666666, phone=8890204260","timestamp":"2026-06-12 16:28:52"}
+{"level":"info","message":"[WS] Client connected. Total clients: 3","timestamp":"2026-06-12 16:28:57"}
+{"level":"info","message":"POST /api/auth/login - IP: 10.101.159.216","timestamp":"2026-06-12 16:29:07"}
+{"level":"info","message":"User logged in: karan@livelong.com","timestamp":"2026-06-12 16:29:24"}
+{"level":"info","message":"POST /api/auth/login - IP: 10.101.159.216","timestamp":"2026-06-12 16:29:31"}
+{"level":"info","message":"User logged in: karan@livelong.com","timestamp":"2026-06-12 16:29:36"}
+{"level":"info","message":"[WS] Received message: {\"type\":\"chat\",\"phone\":\"8890204260\",\"patientId\":\"p1\",\"message\":{\"id\":\"m_1781262006747\",\"text\":\"Hy\",\"sender\":\"patient\",\"timestamp\":\"4:30 pm\",\"patientName\":\"Karan\"}}","timestamp":"2026-06-12 16:30:06"}
+{"level":"info","message":"[WS] Chat message fallback to broadcast","timestamp":"2026-06-12 16:30:06"}
+{"level":"info","message":"[WS] Client disconnected. Total clients: 2","timestamp":"2026-06-12 16:31:27"}
+{"level":"info","message":"[WS] Client disconnected. Total clients: 1","timestamp":"2026-06-12 16:31:27"}
+{"level":"info","message":"POST /api/auth/logout - IP: 10.101.159.216","timestamp":"2026-06-12 16:38:17"}
+{"level":"info","message":"POST /api/auth/refresh-token - IP: 10.101.159.216","timestamp":"2026-06-12 16:38:17"}
+{"level":"info","message":"POST /api/auth/logout - IP: 10.101.159.216","timestamp":"2026-06-12 16:38:18"}
+{"level":"info","message":"[WS] Client connected. Total clients: 2","timestamp":"2026-06-12 16:38:18"}
+{"level":"info","message":"[WS] Client disconnected. Total clients: 1","timestamp":"2026-06-12 16:38:20"}
+{"level":"info","message":"[WS] Client connected. Total clients: 2","timestamp":"2026-06-12 16:38:43"}
+{"level":"info","message":"POST /api/auth/login - IP: 10.101.159.216","timestamp":"2026-06-12 16:38:57"}
+{"level":"info","message":"User logged in: karan@livelong.com","timestamp":"2026-06-12 16:38:59"}
+{"level":"info","message":"POST /api/auth/logout - IP: 10.101.159.216","timestamp":"2026-06-12 16:39:11"}
+{"level":"info","message":"POST /api/auth/refresh-token - IP: 10.101.159.216","timestamp":"2026-06-12 16:39:12"}
+{"level":"info","message":"POST /api/auth/logout - IP: 10.101.159.216","timestamp":"2026-06-12 16:39:13"}

@@ -40,7 +40,9 @@ export default function ChatScreen() {
   useEffect(() => {
     if (scrollViewRef.current) {
       setTimeout(() => {
-        scrollViewRef.current.scrollToEnd({ animated: true });
+        if (scrollViewRef.current) {
+          scrollViewRef.current.scrollToEnd({ animated: true });
+        }
       }, 100);
     }
   }, [messageList]);
