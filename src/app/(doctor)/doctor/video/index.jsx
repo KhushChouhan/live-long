@@ -3,7 +3,7 @@
  * Clean, standard medical telemedicine interface
  * Powered by Jitsi Meet
  */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { useDoctor } from '../../../../store/DoctorContext';
 import { getJitsiRoomName } from '../../../../utils/roomUtils';
@@ -93,16 +93,45 @@ export default function VideoScreen() {
   const { videoCall, endVideoConsult, startVideoConsult, appointments } = useDoctor();
 
   const [callEnded, setCallEnded] = useState(false);
+  const winRef = useRef(null);
 
-  // Auto-open Jitsi room in a new tab on Web
+  // Auto-open Jitsi room in a new tab on Web & monitor it
   useEffect(() => {
+    let interval;
     if (videoCall.isActive && typeof window !== 'undefined') {
       const patient = videoCall.patient;
       const room = videoCall.roomName || getJitsiRoomName(patient?.id);
       const jitsiUrl = `https://meet.jit.si/${room}#config.prejoinPageEnabled=false&config.prejoinConfig.enabled=false&config.startWithAudioMuted=false&config.startWithVideoMuted=false&config.disableDeepLinking=true&config.requireDisplayName=false&config.enableUserRolesBasedOnToken=false&config.disableInviteFunctions=true&config.defaultRemoteDisplayName="Patient"&interfaceConfig.SHOW_JITSI_WATERMARK=false&interfaceConfig.SHOW_WATERMARK_FOR_GUESTS=false&userInfo.displayName=Dr.%20Lawrence&userInfo.moderator=true`;
-      window.open(jitsiUrl, '_blank');
+      
+      if (winRef.current && !winRef.current.closed) {
+        try { winRef.current.close(); } catch(e) {}
+      }
+
+      winRef.current = window.open(jitsiUrl, '_blank');
+
+      interval = setInterval(() => {
+        if (winRef.current && winRef.current.closed) {
+          clearInterval(interval);
+          handleEndCall();
+        }
+      }, 1000);
     }
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
   }, [videoCall.isActive, videoCall.patient, videoCall.roomName]);
+
+  // Close browser tab if the call was ended by the other peer
+  useEffect(() => {
+    if (!videoCall.isActive && winRef.current && !winRef.current.closed) {
+      try {
+        winRef.current.close();
+      } catch (e) {
+        console.warn('Failed to close video window:', e);
+      }
+    }
+  }, [videoCall.isActive]);
 
   const videoAppts = appointments.filter(
     a => a.type === 'video' && a.status !== 'Completed' && a.status !== 'Cancelled',
@@ -111,6 +140,9 @@ export default function VideoScreen() {
   const handleEndCall = () => {
     setCallEnded(true);
     endVideoConsult();
+    if (winRef.current && !winRef.current.closed) {
+      try { winRef.current.close(); } catch (e) {}
+    }
     setTimeout(() => setCallEnded(false), 3500);
   };
 

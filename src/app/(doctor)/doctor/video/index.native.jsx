@@ -305,6 +305,13 @@ export default function VideoScreen() {
             const data = event.nativeEvent.data;
             if (data === 'hangup') handleEndCall();
           }}
+          onNavigationStateChange={(navState) => {
+            const url = navState.url;
+            console.log('[WebView] Doctor Navigated to:', url);
+            if (url.includes('static/close3.html') || url.includes('close3') || url.includes('thankyou') || url.includes('/static/close')) {
+              handleEndCall();
+            }
+          }}
         />
       </SafeAreaView>
     );

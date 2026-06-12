@@ -123,6 +123,7 @@ export default function UserLayout() {
   const [muted, setMuted] = useState(false);
   const [callDuration, setCallDuration] = useState(0);
   const vibratingRef = useRef(false);
+  const winRef = useRef(null);
 
   const { width: W } = useWindowDimensions();
   const isMob = W < 600;
@@ -179,12 +180,41 @@ export default function UserLayout() {
     return () => clearInterval(t);
   }, [callStatus]);
 
-  // ── Open Jitsi on Web in new tab ──────────────────────────────────────────
+  // ── Open Jitsi on Web in new tab & monitor it ─────────────────────────────
   useEffect(() => {
-    if (callStatus !== 'connected' || Platform.OS !== 'web') return;
-    const url = buildJitsiUrl(videoCall.roomName || 'livelong-consult-default', currentUser?.name || 'Patient');
-    window.open(url, '_blank');
+    let interval;
+    if (callStatus === 'connected' && Platform.OS === 'web') {
+      const url = buildJitsiUrl(videoCall.roomName || 'livelong-consult-default', currentUser?.name || 'Patient');
+      
+      if (winRef.current && !winRef.current.closed) {
+        try { winRef.current.close(); } catch(e) {}
+      }
+      
+      winRef.current = window.open(url, '_blank');
+      
+      interval = setInterval(() => {
+        if (winRef.current && winRef.current.closed) {
+          clearInterval(interval);
+          handleEndCall();
+        }
+      }, 1000);
+    }
+    
+    return () => {
+      if (interval) clearInterval(interval);
+    };
   }, [callStatus]); // eslint-disable-line
+
+  // Close browser tab if the call was ended by the other peer
+  useEffect(() => {
+    if (callStatus !== 'connected' && winRef.current && !winRef.current.closed) {
+      try {
+        winRef.current.close();
+      } catch (e) {
+        console.warn('Failed to close video window:', e);
+      }
+    }
+  }, [callStatus]);
 
   // ── Handlers ─────────────────────────────────────────────────────────────
   const acceptIncomingCall = async () => {
@@ -207,6 +237,9 @@ export default function UserLayout() {
 
   const handleEndCall = () => {
     endVideoConsult();
+    if (winRef.current && !winRef.current.closed) {
+      try { winRef.current.close(); } catch (e) {}
+    }
   };
 
   const jitsiUrl = buildJitsiUrl(videoCall.roomName || 'livelong-consult-default', currentUser?.name || 'Patient');
@@ -457,6 +490,13 @@ export default function UserLayout() {
                 event.request.grant(event.request.resources);
               }}
               onShouldStartLoadWithRequest={() => true}
+              onNavigationStateChange={(navState) => {
+                const url = navState.url;
+                console.log('[WebView] Patient Navigated to:', url);
+                if (url.includes('static/close3.html') || url.includes('close3') || url.includes('thankyou') || url.includes('/static/close')) {
+                  handleEndCall();
+                }
+              }}
             />
           )}
 
