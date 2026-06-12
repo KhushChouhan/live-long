@@ -38,12 +38,12 @@ const INITIAL_CHECKOUT = [];
 
 // ─── Initial Chats ──────────────────────────────────────────────
 const INITIAL_CHATS = {
-  '8890204260': [
+  'p1': [
     { id: 'c-k-1', text: 'Hello Doctor, this is Karan.', sender: 'patient', timestamp: '11:45 AM' },
     { id: 'c-k-2', text: 'Hi Karan, I am ready to start our Video Consult. Are you online?', sender: 'doctor', timestamp: '11:50 AM' },
     { id: 'c-k-3', text: 'Yes Doctor, ready.', sender: 'patient', timestamp: '11:52 AM' }
   ],
-  '95713299819': [
+  'p13': [
     { id: 'c-s-1', text: 'Hello Doctor, this is Sonia.', sender: 'patient', timestamp: '12:00 PM' }
   ]
 };

@@ -16,10 +16,10 @@ import { MotiView } from 'moti';
 
 export default function ChatScreen() {
   const { patientId: paramPatientId } = useLocalSearchParams();
-  const { appointments, chats, sendMessage, startVideoConsult } = useDoctor();
+  const { patients, chats, sendMessage, startVideoConsult } = useDoctor();
 
   // Find patients with chat logs or scheduled slots
-  const chatPatients = appointments.filter(a => a.status === 'Active' || a.status === 'Pending' || a.status === 'Completed');
+  const chatPatients = patients;
   
   // Set selected patient
   const [selectedPatientId, setSelectedPatientId] = useState(paramPatientId || chatPatients[0]?.id);
@@ -83,7 +83,7 @@ export default function ChatScreen() {
                   className={`flex-row items-center gap-2 px-3 py-2 rounded-2xl border transition-all ${active ? 'bg-[#003366] border-[#003366]' : 'bg-slate-50 border-slate-200'}`}
                 >
                   <View className={`w-8 h-8 rounded-full items-center justify-center ${active ? 'bg-white/20' : 'bg-slate-200'}`}>
-                    <Text className={`text-xs font-black ${active ? 'text-white' : 'text-slate-700'}`}>{patient.avatar}</Text>
+                    <Text className={`text-xs font-black ${active ? 'text-white' : 'text-slate-700'}`}>{patient.avatar || patient.name.substring(0, 2).toUpperCase()}</Text>
                   </View>
                   <View>
                     <Text className={`text-[10px] font-black ${active ? 'text-white' : 'text-slate-800'}`}>{patient.name}</Text>
@@ -106,7 +106,7 @@ export default function ChatScreen() {
           <View className="bg-white border-b border-slate-100 px-6 py-3.5 flex-row justify-between items-center">
             <View className="flex-row items-center gap-3">
               <View className="w-9 h-9 bg-slate-100 rounded-full items-center justify-center border border-slate-200">
-                <Text className="text-slate-700 font-extrabold text-xs">{activePatient.avatar}</Text>
+                <Text className="text-slate-700 font-extrabold text-xs">{activePatient.avatar || activePatient.name.substring(0, 2).toUpperCase()}</Text>
               </View>
               <View>
                 <Text className="text-xs font-extrabold text-slate-800">{activePatient.name}</Text>
