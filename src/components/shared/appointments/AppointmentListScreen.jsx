@@ -6,7 +6,7 @@ import { Feather } from '@expo/vector-icons';
 import { MotiView } from 'moti';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useDoctor } from '../../../store/DoctorContext';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { normalizePhone } from '../../../utils/roomUtils';
 
 // ── LiveLong Tokens ────────────────────────────────────────────────────────────
@@ -267,9 +267,16 @@ const FILTERS = [
 
 export default function AppointmentListScreen() {
   const { appointments, patients } = useDoctor();
+  const params = useLocalSearchParams();
   const [currentUser, setCurrentUser]     = useState(null);
   const [activeFilter, setActiveFilter]   = useState('all');
   const [searchQ, setSearchQ]             = useState('');
+
+  useEffect(() => {
+    if (params?.filter) {
+      setActiveFilter(params.filter);
+    }
+  }, [params?.filter]);
 
   useEffect(() => {
     AsyncStorage.getItem('current_user')

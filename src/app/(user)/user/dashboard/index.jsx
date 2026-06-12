@@ -3,7 +3,7 @@ import {
   View, Text, ScrollView, TouchableOpacity, Modal, KeyboardAvoidingView,
   TextInput, Platform, StatusBar, useWindowDimensions
 } from 'react-native';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useDoctor } from '../../../../store/DoctorContext';
 import {
   Users, ClipboardList, Activity, MessageSquare, Bell, Search, Send,
@@ -125,6 +125,13 @@ export default function UserDashboard() {
   const { width: W } = useWindowDimensions();
   const isWeb  = Platform.OS === 'web';
   const isMob  = W < 600;
+
+  const params = useLocalSearchParams();
+  useEffect(() => {
+    if (params?.openChat === 'true') {
+      setChatOpen(true);
+    }
+  }, [params?.openChat]);
 
   useEffect(() => {
     AsyncStorage.getItem('current_user')

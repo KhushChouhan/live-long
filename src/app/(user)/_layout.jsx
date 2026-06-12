@@ -3,7 +3,7 @@ import {
   View, Platform, SafeAreaView, StatusBar, Text, TouchableOpacity,
   PermissionsAndroid, Vibration, useWindowDimensions
 } from 'react-native';
-import { Slot, useRouter, usePathname } from 'expo-router';
+import { Slot, useRouter, usePathname, useLocalSearchParams } from 'expo-router';
 import Sidebar from '../../components/layout/Sidebar';
 import Topbar from '../../components/layout/Topbar';
 import { USER_MENU } from '../../config/navigation';
@@ -129,6 +129,7 @@ export default function UserLayout() {
   const isMob = W < 600;
   const router = useRouter();
   const pathname = usePathname();
+  const params = useLocalSearchParams();
 
   // Get unread chats count
   const patientId = useMemo(() => {
@@ -268,30 +269,30 @@ export default function UserLayout() {
               borderTopColor: '#E2E8F0',
             }}>
               <TouchableOpacity onPress={() => router.push('/user/dashboard')} style={{ alignItems: 'center', gap: 4 }}>
-                <Home size={22} color={pathname === '/user/dashboard' ? '#2563EB' : '#94A3B8'} />
-                <Text style={{ fontSize: 10, fontWeight: '700', color: pathname === '/user/dashboard' ? '#2563EB' : '#94A3B8' }}>Home</Text>
+                <Home size={22} color={pathname === '/user/dashboard' && params?.openChat !== 'true' ? '#2563EB' : '#94A3B8'} />
+                <Text style={{ fontSize: 10, fontWeight: '700', color: pathname === '/user/dashboard' && params?.openChat !== 'true' ? '#2563EB' : '#94A3B8' }}>Home</Text>
               </TouchableOpacity>
               
               <TouchableOpacity onPress={() => router.push('/user/appointments/appointment-list')} style={{ alignItems: 'center', gap: 4 }}>
-                <Calendar size={22} color={pathname.includes('appointments') ? '#2563EB' : '#94A3B8'} />
-                <Text style={{ fontSize: 10, fontWeight: '700', color: pathname.includes('appointments') ? '#2563EB' : '#94A3B8' }}>Appointments</Text>
+                <Calendar size={22} color={pathname.includes('appointments') && params?.filter !== 'video' ? '#2563EB' : '#94A3B8'} />
+                <Text style={{ fontSize: 10, fontWeight: '700', color: pathname.includes('appointments') && params?.filter !== 'video' ? '#2563EB' : '#94A3B8' }}>Appointments</Text>
               </TouchableOpacity>
               
-              <TouchableOpacity onPress={() => router.push('/user/dashboard')} style={{ alignItems: 'center', gap: 4 }}>
+              <TouchableOpacity onPress={() => router.push('/user/dashboard?openChat=true')} style={{ alignItems: 'center', gap: 4 }}>
                 <View>
-                  <MessageSquare size={22} color={pathname.includes('chat') ? '#2563EB' : '#94A3B8'} />
+                  <MessageSquare size={22} color={pathname === '/user/dashboard' && params?.openChat === 'true' ? '#2563EB' : '#94A3B8'} />
                   {unreadChats > 0 && (
                     <View style={{ position: 'absolute', top: -4, right: -6, backgroundColor: '#EF4444', borderRadius: 8, paddingHorizontal: 4, minWidth: 16, height: 16, alignItems: 'center', justifyContent: 'center' }}>
                       <Text style={{ color: '#fff', fontSize: 8, fontWeight: 'bold' }}>{unreadChats > 9 ? '9+' : unreadChats}</Text>
                     </View>
                   )}
                 </View>
-                <Text style={{ fontSize: 10, fontWeight: '700', color: pathname.includes('chat') ? '#2563EB' : '#94A3B8' }}>Chats</Text>
+                <Text style={{ fontSize: 10, fontWeight: '700', color: pathname === '/user/dashboard' && params?.openChat === 'true' ? '#2563EB' : '#94A3B8' }}>Chats</Text>
               </TouchableOpacity>
               
-              <TouchableOpacity onPress={() => router.push('/user/dashboard')} style={{ alignItems: 'center', gap: 4 }}>
-                <Video size={22} color={pathname.includes('video') ? '#2563EB' : '#94A3B8'} />
-                <Text style={{ fontSize: 10, fontWeight: '700', color: pathname.includes('video') ? '#2563EB' : '#94A3B8' }}>Video</Text>
+              <TouchableOpacity onPress={() => router.push('/user/appointments/appointment-list?filter=video')} style={{ alignItems: 'center', gap: 4 }}>
+                <Video size={22} color={pathname.includes('appointments') && params?.filter === 'video' ? '#2563EB' : '#94A3B8'} />
+                <Text style={{ fontSize: 10, fontWeight: '700', color: pathname.includes('appointments') && params?.filter === 'video' ? '#2563EB' : '#94A3B8' }}>Video</Text>
               </TouchableOpacity>
               
               <TouchableOpacity onPress={logout} style={{ alignItems: 'center', gap: 4 }}>

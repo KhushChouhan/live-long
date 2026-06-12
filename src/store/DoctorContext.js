@@ -106,6 +106,14 @@ export function DoctorProvider({ children }) {
 
   const [activeChatPatientId, setActiveChatPatientId] = useState(null);
   const wsRef = useRef(null);
+  const appointmentsRef = useRef(appointments);
+  const patientsRef = useRef(patients);
+  useEffect(() => {
+    appointmentsRef.current = appointments;
+  }, [appointments]);
+  useEffect(() => {
+    patientsRef.current = patients;
+  }, [patients]);
 
   // Helper to resolve thread key (normalized phone) from appointment/patient ID
   const getThreadKey = (idOrPhone) => {
@@ -223,7 +231,7 @@ export function DoctorProvider({ children }) {
               return updated;
             });
 
-            const appt = appointments.find(a => normalizePhone(a.phone) === phoneKey);
+            const appt = appointmentsRef.current.find(a => normalizePhone(a.phone) === phoneKey);
             const patientName = appt?.name || 'Patient';
 
             if (user?.role === 'doctor' && message.sender === 'patient') {
@@ -283,7 +291,7 @@ export function DoctorProvider({ children }) {
 
     connect();
     return () => { if (ws) ws.close(); if (reconnectTimer) clearTimeout(reconnectTimer); };
-  }, [user, appointments, patients]);
+  }, [user]);
 
 
   // Handle re-sending join message if user logging in/out triggers change on active socket

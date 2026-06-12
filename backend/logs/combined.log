@@ -6234,3 +6234,9 @@
 {"level":"info","message":"[WS] Client registered: role=doctor, userId=11111111-1111-1111-1111-111111111111, phone=9876543210","timestamp":"2026-06-12 16:12:36"}
 {"level":"info","message":"[WS] Client disconnected. Total clients: 2","timestamp":"2026-06-12 16:13:02"}
 {"level":"info","message":"[WS] Client disconnected. Total clients: 1","timestamp":"2026-06-12 16:13:02"}
+{"level":"info","message":"[WS] Client disconnected. Total clients: 0","timestamp":"2026-06-12 16:26:47"}
+{"level":"info","message":"[WS] Client connected. Total clients: 1","timestamp":"2026-06-12 16:26:56"}
+{"level":"info","message":"[WS] Client connected. Total clients: 2","timestamp":"2026-06-12 16:26:56"}
+{"level":"info","message":"[WS] Received message: {\"type\":\"join\",\"role\":\"doctor\",\"userId\":\"11111111-1111-1111-1111-111111111111\",\"phone\":\"+919876543210\"}","timestamp":"2026-06-12 16:26:56"}
+{"level":"info","message":"[WS] Client registered: role=doctor, userId=11111111-1111-1111-1111-111111111111, phone=9876543210","timestamp":"2026-06-12 16:26:56"}
+{"level":"info","message":"[WS] Client connected. Total clients: 3","timestamp":"2026-06-12 16:27:00"}
