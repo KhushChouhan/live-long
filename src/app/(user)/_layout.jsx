@@ -113,63 +113,19 @@ function formatDuration(secs) {
   return h > 0 ? h + ':' + pad(m) + ':' + pad(s) : pad(m) + ':' + pad(s);
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-const getCleanSignalName = (name) => {
-  const n = String(name || '').toLowerCase();
-  if (n.includes('khushwant')) return 'khushwant';
-  if (n.includes('karan')) return 'karan';
-  if (n.includes('chinu')) return 'chinu';
-  if (n.includes('amit')) return 'amit';
-  if (n.includes('kiran')) return 'kiran';
-  if (n.includes('sneha')) return 'sneha';
-  if (n.includes('vikram')) return 'vikram';
-  return n.replace(/[^a-z0-9]/g, '');
-};
 
-const getKeysToPoll = (user) => {
-  const keys = [];
-  if (user?.uid) keys.push(`call_state_${user.uid}`);
-  if (user?.id) keys.push(`call_state_${user.id}`);
-  
-  const name = String(user?.name || '').toLowerCase();
-  const phone = String(user?.phone || '');
-  const email = String(user?.email || '').toLowerCase();
-
-  // Chinu maps (user's personal number: 9680796461)
-  if (name.includes('chinu') || phone.includes('9680796461') || email.includes('chinu')) {
-    keys.push('call_state_77777777-7777-7777-7777-777777777777');
-    keys.push('call_state_chinu');
-  }
-  // Vikram maps
-  else if (name.includes('vikram') || email.includes('vikram')) {
-    keys.push('call_state_55555555-5555-5555-5555-555555555556');
-    keys.push('call_state_vikram');
-  }
-  // Karan maps and default demo fallback
-  else {
-    keys.push('call_state_66666666-6666-6666-6666-666666666666');
-    if (name.includes('karan')) keys.push('call_state_karan');
-  }
-  
-  const cleanName = getCleanSignalName(user?.name);
-  if (cleanName) {
-    keys.push(`call_state_${cleanName}`);
-  }
-  
-  return Array.from(new Set(keys)).filter(Boolean);
-};
 
 export default function PatientLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(Platform.OS === 'web');
-  const { endVideoConsult } = useDoctor();
+  const { videoCall, endVideoConsult, acceptVideoConsult, declineVideoConsult } = useDoctor();
   const { user } = useAuth();
 
   const [currentUser, setCurrentUser] = useState(user);
-  const [callStatus, setCallStatus] = useState('idle'); // idle | incoming | connected
   const [callDuration, setCallDuration] = useState(0);
   const [muted, setMuted] = useState(false);
   const vibratingRef = useRef(false);
-  const [activeCallRoom, setActiveCallRoom] = useState('');
+
+  const callStatus = videoCall.isActive ? (videoCall.incoming ? 'incoming' : 'connected') : 'idle';
 
   // ── Sync user from AuthContext or storage ────────────────────────────────────
   useEffect(() => {
@@ -188,50 +144,6 @@ export default function PatientLayout() {
         .catch(err => console.error('[PatientLayout] AsyncStorage error:', err));
     }
   }, [user]);
-
-  // ── Poll signaling ────────────────────────────────────────────────────────
-  useEffect(() => {
-    const keys = getKeysToPoll(currentUser);
-    console.log('[PatientLayout] getKeysToPoll returned keys:', keys);
-    if (keys.length === 0) return;
-    
-    const poll = setInterval(async () => {
-      try {
-        const responses = await Promise.all(
-          keys.map(async k => {
-            const url = `https://keyvalue.immanuel.co/api/KeyVal/GetValue/mm0xw0az/${k}?cb=${Date.now()}`;
-            const r = await fetch(url, { cache: 'no-store' });
-            const text = await r.text();
-            // Clean quotes from text
-            return text.replace(/^"|"$/g, '').trim();
-          })
-        );
-        
-        let activeKeySuffix = null;
-        for (let i = 0; i < keys.length; i++) {
-          if (responses[i] === 'active') {
-            activeKeySuffix = keys[i].replace('call_state_', '');
-            break;
-          }
-        }
-        
-        if (activeKeySuffix) {
-          console.log('[PatientLayout] Call detected active under suffix:', activeKeySuffix);
-          setActiveCallRoom(activeKeySuffix);
-          if (callStatus === 'idle') setCallStatus('incoming');
-        } else {
-          if (callStatus === 'incoming') {
-            console.log('[PatientLayout] Call went inactive.');
-            setCallStatus('idle');
-            setActiveCallRoom('');
-          }
-        }
-      } catch (err) {
-        console.error('[PatientLayout] Poll signaling error:', err);
-      }
-    }, 2500);
-    return () => clearInterval(poll);
-  }, [currentUser, callStatus]);
 
   // ── Vibrate on incoming ───────────────────────────────────────────────────
   useEffect(() => {
@@ -258,8 +170,7 @@ export default function PatientLayout() {
   // ── Open Jitsi on Web in new tab ──────────────────────────────────────────
   useEffect(() => {
     if (callStatus !== 'connected' || Platform.OS !== 'web') return;
-    const cleanRoomName = activeCallRoom || getCleanSignalName(currentUser?.name || 'khushwant');
-    const url = buildJitsiUrl(`livelong-consult-${cleanRoomName}`, currentUser?.name || 'Patient');
+    const url = buildJitsiUrl(videoCall.roomName || 'livelong-consult-default', currentUser?.name || 'Patient');
     window.open(url, '_blank');
   }, [callStatus]); // eslint-disable-line
 
@@ -275,28 +186,18 @@ export default function PatientLayout() {
         ]);
       } catch (_) {}
     }
-    setCallStatus('connected');
+    acceptVideoConsult();
   };
 
   const handleDecline = () => {
-    const id = currentUser?.uid || currentUser?.id || '3';
-    const cleanName = getCleanSignalName(currentUser?.name || 'khushwant');
-    fetch(`https://keyvalue.immanuel.co/api/KeyVal/UpdateValue/mm0xw0az/call_state_${id}/inactive`, { method: 'POST' }).catch(() => {});
-    fetch(`https://keyvalue.immanuel.co/api/KeyVal/UpdateValue/mm0xw0az/call_state_${cleanName}/inactive`, { method: 'POST' }).catch(() => {});
-    setCallStatus('idle');
+    declineVideoConsult();
   };
 
   const handleEndCall = () => {
-    const id = currentUser?.uid || currentUser?.id || '3';
-    const cleanName = getCleanSignalName(currentUser?.name || 'khushwant');
-    fetch(`https://keyvalue.immanuel.co/api/KeyVal/UpdateValue/mm0xw0az/call_state_${id}/inactive`, { method: 'POST' }).catch(() => {});
-    fetch(`https://keyvalue.immanuel.co/api/KeyVal/UpdateValue/mm0xw0az/call_state_${cleanName}/inactive`, { method: 'POST' }).catch(() => {});
     endVideoConsult();
-    setCallStatus('idle');
   };
 
-  const cleanRoomName = activeCallRoom || getCleanSignalName(currentUser?.name || 'khushwant');
-  const jitsiUrl = buildJitsiUrl(`livelong-consult-${cleanRoomName}`, currentUser?.name || 'Patient');
+  const jitsiUrl = buildJitsiUrl(videoCall.roomName || 'livelong-consult-default', currentUser?.name || 'Patient');
 
   return (
     <SafeAreaView className="flex-1 bg-slate-50">

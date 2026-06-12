@@ -3,6 +3,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 import Constants from 'expo-constants';
 import { getApiBaseUrl, getWsBaseUrl } from '../config/apiConfig';
+import { useAuth } from './AuthContext';
+import { normalizePhone, getJitsiRoomName } from '../utils/roomUtils';
 
 const DoctorContext = createContext();
 
@@ -83,6 +85,7 @@ const INITIAL_CHATS = {
 };
 
 export function DoctorProvider({ children }) {
+  const { user } = useAuth();
   // ─── Core State ────────────────────────────────────────────────
   const [patients, setPatients] = useState(INITIAL_PATIENTS);
   const [appointments, setAppointments] = useState(INITIAL_APPOINTMENTS);
@@ -105,6 +108,33 @@ export function DoctorProvider({ children }) {
 
   const [activeChatPatientId, setActiveChatPatientId] = useState(null);
   const wsRef = useRef(null);
+
+  // Helper to resolve thread key (normalized phone) from appointment/patient ID
+  const getThreadKey = (idOrPhone) => {
+    if (!idOrPhone) return '';
+    if (String(idOrPhone).startsWith('a')) {
+      const appt = appointments.find(a => a.id === idOrPhone);
+      if (appt) return normalizePhone(appt.phone);
+    }
+    if (String(idOrPhone).includes('-')) {
+      const appt = appointments.find(a => a.patientId === idOrPhone || a.id === idOrPhone);
+      if (appt) return normalizePhone(appt.phone);
+    }
+    return normalizePhone(idOrPhone);
+  };
+
+  // Mapped chats that can be accessed by phone, appointment ID, or user ID
+  const accessibleChats = useMemo(() => {
+    const result = { ...chats };
+    appointments.forEach(appt => {
+      const phoneKey = normalizePhone(appt.phone);
+      if (phoneKey && chats[phoneKey]) {
+        result[appt.id] = chats[phoneKey];
+        result[appt.patientId] = chats[phoneKey];
+      }
+    });
+    return result;
+  }, [chats, appointments]);
 
   // ─── Computed Stats (live from data) ──────────────────────────
   const stats = useMemo(() => {
@@ -157,28 +187,70 @@ export function DoctorProvider({ children }) {
       ws = new WebSocket(wsUrl);
       wsRef.current = ws;
 
-      ws.onopen = () => console.log('[DoctorContext] WebSocket connected');
+      ws.onopen = () => {
+        console.log('[DoctorContext] WebSocket connected');
+        if (user) {
+          ws.send(JSON.stringify({
+            type: 'join',
+            role: user.role,
+            userId: user.id || user.uid,
+            phone: user.phone
+          }));
+        }
+      };
 
       ws.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
           console.log('[DoctorContext] WebSocket incoming:', data);
 
-          if (data.type === 'chat' && data.patientId && data.message) {
-            const { patientId, message } = data;
+          if (data.type === 'chat') {
+            const phoneKey = normalizePhone(data.phone || data.patientId);
+            if (!phoneKey) return;
+
+            const message = data.message;
             setChats(prev => {
-              const thread = prev[patientId] || [];
+              const thread = prev[phoneKey] || [];
               if (thread.some(m => m.id === message.id)) return prev;
-              const updated = { ...prev, [patientId]: [...thread, message] };
+              const updated = { ...prev, [phoneKey]: [...thread, message] };
               AsyncStorage.setItem('livelong_chats', JSON.stringify(updated)).catch(() => {});
               return updated;
             });
 
-            if (message.sender === 'patient') {
-              const patientName = message.patientName || 'Patient';
-              setNotifLog(prev => [{ id: 'notif_msg_' + Date.now(), patientId, patient: patientName, msg: message.text, time: message.timestamp || 'Just now', read: false, isChat: true }, ...prev]);
+            const appt = appointments.find(a => normalizePhone(a.phone) === phoneKey);
+            const patientName = appt?.name || 'Patient';
+
+            if (user?.role === 'doctor' && message.sender === 'patient') {
+              setNotifLog(prev => [{ id: 'notif_msg_' + Date.now(), patientId: appt?.id || phoneKey, patient: patientName, msg: message.text, time: message.timestamp || 'Just now', read: false, isChat: true }, ...prev]);
               setNotifications(prev => [{ id: 'n_' + Date.now(), title: `New Message from ${patientName}`, description: `"${message.text.substring(0, 55)}"`, time: 'Just now', read: false }, ...prev]);
             }
+          } else if (data.type === 'call_start') {
+            if (user && user.role === 'patient' && normalizePhone(user.phone) === normalizePhone(data.targetPhone)) {
+              setVideoCall({
+                isActive: true,
+                incoming: true,
+                roomName: data.roomName,
+                appointmentId: data.appointmentId,
+                doctorName: data.doctorName,
+                duration: 0
+              });
+            }
+          } else if (data.type === 'call_accept') {
+            if (user && user.role === 'doctor') {
+              setVideoCall(prev => ({
+                ...prev,
+                isActive: true,
+                incoming: false,
+                duration: 0
+              }));
+            }
+          } else if (data.type === 'call_decline') {
+            if (user && user.role === 'doctor') {
+              setVideoCall({ isActive: false, patient: null, duration: 0 });
+              setAppointments(prev => prev.map(a => a.id === data.appointmentId ? { ...a, status: 'Scheduled' } : a));
+            }
+          } else if (data.type === 'call_end') {
+            setVideoCall({ isActive: false, patient: null, duration: 0 });
           }
         } catch (err) { console.error('[DoctorContext] WS message error:', err); }
       };
@@ -189,7 +261,19 @@ export function DoctorProvider({ children }) {
 
     connect();
     return () => { if (ws) ws.close(); if (reconnectTimer) clearTimeout(reconnectTimer); };
-  }, []);
+  }, [user, appointments]);
+
+  // Handle re-sending join message if user logging in/out triggers change on active socket
+  useEffect(() => {
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN && user) {
+      wsRef.current.send(JSON.stringify({
+        type: 'join',
+        role: user.role,
+        userId: user.id || user.uid,
+        phone: user.phone
+      }));
+    }
+  }, [user]);
 
   // ─── Notification helpers ─────────────────────────────────────
   const markAllNotifLogRead = () => setNotifLog(prev => prev.map(n => ({ ...n, read: true })));
@@ -327,47 +411,48 @@ export function DoctorProvider({ children }) {
 
   // ─── Chat Actions ─────────────────────────────────────────────
   const sendMessage = (patientId, text, sender = 'doctor') => {
+    const phoneKey = getThreadKey(patientId);
+    if (!phoneKey) return;
+
     const newMessage = { id: 'm_' + Date.now(), text, sender, timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) };
     setChats(prev => {
-      const thread = prev[patientId] || [];
-      const updated = { ...prev, [patientId]: [...thread, newMessage] };
+      const thread = prev[phoneKey] || [];
+      const updated = { ...prev, [phoneKey]: [...thread, newMessage] };
       AsyncStorage.setItem('livelong_chats', JSON.stringify(updated)).catch(() => {});
       return updated;
     });
+
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-      const patientName = appointments.find(a => a.id === patientId)?.name || 'Patient';
-      wsRef.current.send(JSON.stringify({ type: 'chat', patientId, message: { ...newMessage, patientName } }));
+      const appt = appointments.find(a => normalizePhone(a.phone) === phoneKey);
+      const patientName = appt?.name || 'Patient';
+      wsRef.current.send(JSON.stringify({
+        type: 'chat',
+        phone: phoneKey,
+        patientId,
+        message: { ...newMessage, patientName }
+      }));
     }
   };
 
-  // ─── Video Consult ────────────────────────────────────────────
-  const getCleanSignalName = (name) => {
-    const n = String(name || '').toLowerCase();
-    if (n.includes('khushwant')) return 'khushwant';
-    if (n.includes('karan')) return 'karan';
-    if (n.includes('chinu')) return 'chinu';
-    if (n.includes('amit')) return 'amit';
-    if (n.includes('kiran')) return 'kiran';
-    if (n.includes('sneha')) return 'sneha';
-    if (n.includes('vikram')) return 'vikram';
-    return n.replace(/[^a-z0-9]/g, '');
-  };
+
 
   const startVideoConsult = (patientId) => {
     const patientObj = appointments.find(a => a.id === patientId);
     if (patientObj) {
-      const cleanName = getCleanSignalName(patientObj.name);
-      console.log(`[DoctorContext] Starting call for ${patientObj.name} (ID: ${patientId}, cleanName: ${cleanName})`);
+      const roomName = getJitsiRoomName(patientId);
+      console.log(`[DoctorContext] Starting WebSocket call for ${patientObj.name} (ID: ${patientId}, room: ${roomName})`);
 
-      fetch('https://keyvalue.immanuel.co/api/KeyVal/UpdateValue/mm0xw0az/call_state_' + patientId + '/active', { method: 'POST' })
-        .then(r => r.text()).then(t => console.log(`[DoctorContext] KV Update ID Response:`, t.trim()))
-        .catch(err => console.error('[DoctorContext] KV Update ID Error:', err));
+      if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+        wsRef.current.send(JSON.stringify({
+          type: 'call_start',
+          targetPhone: patientObj.phone,
+          appointmentId: patientId,
+          roomName: roomName,
+          doctorName: user?.name || 'Dr. Catherine Lawrence'
+        }));
+      }
 
-      fetch('https://keyvalue.immanuel.co/api/KeyVal/UpdateValue/mm0xw0az/call_state_' + cleanName + '/active', { method: 'POST' })
-        .then(r => r.text()).then(t => console.log(`[DoctorContext] KV Update Name Response:`, t.trim()))
-        .catch(err => console.error('[DoctorContext] KV Update Name Error:', err));
-
-      setVideoCall({ isActive: true, patient: patientObj, muted: false, videoOff: false, duration: 0 });
+      setVideoCall({ isActive: true, incoming: false, calling: true, patient: patientObj, roomName, appointmentId: patientId, duration: 0 });
       setAppointments(prev => prev.map(a => {
         if (a.id === patientId) return { ...a, status: 'Active' };
         if (a.status === 'Active') return { ...a, status: 'Completed' };
@@ -378,23 +463,45 @@ export function DoctorProvider({ children }) {
 
   const endVideoConsult = () => {
     const activePat = videoCall.patient;
-    setVideoCall(prev => ({ ...prev, isActive: false }));
+    const apptId = videoCall.appointmentId || (activePat ? activePat.id : null);
+    
+    console.log(`[DoctorContext] Ending WebSocket call. ApptId: ${apptId}`);
+
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify({
+        type: 'call_end',
+        appointmentId: apptId
+      }));
+    }
+
+    setVideoCall({ isActive: false, patient: null, duration: 0 });
 
     if (activePat) {
-      const cleanName = getCleanSignalName(activePat.name);
-      console.log(`[DoctorContext] Ending call for ${activePat.name} (ID: ${activePat.id}, cleanName: ${cleanName})`);
-
-      fetch('https://keyvalue.immanuel.co/api/KeyVal/UpdateValue/mm0xw0az/call_state_' + activePat.id + '/inactive', { method: 'POST' })
-        .then(r => r.text()).then(t => console.log(`[DoctorContext] KV Update ID Response:`, t.trim()))
-        .catch(err => console.error('[DoctorContext] KV Update ID Error:', err));
-
-      fetch('https://keyvalue.immanuel.co/api/KeyVal/UpdateValue/mm0xw0az/call_state_' + cleanName + '/inactive', { method: 'POST' })
-        .then(r => r.text()).then(t => console.log(`[DoctorContext] KV Update Name Response:`, t.trim()))
-        .catch(err => console.error('[DoctorContext] KV Update Name Error:', err));
-
       setAppointments(prev => prev.map(a => a.id === activePat.id ? { ...a, status: 'Completed' } : a));
       setNotifications(prev => [{ id: 'n_' + Date.now(), title: 'Consultation Completed', description: `Video consult with ${activePat.name} ended.`, time: 'Just now', read: false }, ...prev]);
     }
+  };
+
+  const acceptVideoConsult = () => {
+    console.log(`[DoctorContext] Accept video call for appointment: ${videoCall.appointmentId}`);
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify({
+        type: 'call_accept',
+        appointmentId: videoCall.appointmentId
+      }));
+    }
+    setVideoCall(prev => ({ ...prev, incoming: false }));
+  };
+
+  const declineVideoConsult = () => {
+    console.log(`[DoctorContext] Decline video call for appointment: ${videoCall.appointmentId}`);
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify({
+        type: 'call_decline',
+        appointmentId: videoCall.appointmentId
+      }));
+    }
+    setVideoCall({ isActive: false, patient: null, duration: 0 });
   };
 
   const notifyPatient = async (patientId, messageType, messageText) => {
@@ -453,7 +560,7 @@ export function DoctorProvider({ children }) {
     <DoctorContext.Provider value={{
       // Data
       patients, appointments, upcomingQueue, missedQueue, checkout,
-      notifications, chats, activePatient, videoCall, notifLog, searchQ, stats,
+      notifications, chats: accessibleChats, activePatient, videoCall, notifLog, searchQ, stats,
       activeChatPatientId,
       // Setters
       setVideoCall, setActivePatient, setSearchQ, setNotifLog,
@@ -473,7 +580,7 @@ export function DoctorProvider({ children }) {
       // Chat actions
       sendMessage,
       // Video actions
-      startVideoConsult, endVideoConsult,
+      startVideoConsult, endVideoConsult, acceptVideoConsult, declineVideoConsult,
       // Notification actions
       notifyPatient, markNotificationRead, markAllNotificationsRead, markAllNotifLogRead,
       // Helpers

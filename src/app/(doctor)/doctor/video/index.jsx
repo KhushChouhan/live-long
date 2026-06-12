@@ -6,6 +6,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { useDoctor } from '../../../../store/DoctorContext';
+import { getJitsiRoomName } from '../../../../utils/roomUtils';
 import {
   Video, Phone, PhoneOff, ShieldCheck, Users, CheckCircle, Wifi, Activity, Clock,
 } from 'lucide-react-native';
@@ -97,12 +98,11 @@ export default function VideoScreen() {
   useEffect(() => {
     if (videoCall.isActive && typeof window !== 'undefined') {
       const patient = videoCall.patient;
-      const clean = getCleanRoomName(patient?.name);
-      const room = `livelong-consult-${patient?.id || clean}`;
+      const room = videoCall.roomName || getJitsiRoomName(patient?.id);
       const jitsiUrl = `https://meet.jit.si/${room}#config.prejoinPageEnabled=false&config.prejoinConfig.enabled=false&config.startWithAudioMuted=false&config.startWithVideoMuted=false&config.disableDeepLinking=true&config.requireDisplayName=false&config.enableUserRolesBasedOnToken=false&config.disableInviteFunctions=true&config.defaultRemoteDisplayName="Patient"&interfaceConfig.SHOW_JITSI_WATERMARK=false&interfaceConfig.SHOW_WATERMARK_FOR_GUESTS=false&userInfo.displayName=Dr.%20Lawrence&userInfo.moderator=true`;
       window.open(jitsiUrl, '_blank');
     }
-  }, [videoCall.isActive, videoCall.patient]);
+  }, [videoCall.isActive, videoCall.patient, videoCall.roomName]);
 
   const videoAppts = appointments.filter(
     a => a.type === 'video' && a.status !== 'Completed' && a.status !== 'Cancelled',

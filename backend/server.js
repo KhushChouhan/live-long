@@ -475,6 +475,15 @@ const startServer = async () => {
     const wss = new WebSocketServer({ server });
     const wsClients = new Set();
 
+    const normalizePhone = (phone) => {
+      if (!phone) return '';
+      let cleaned = String(phone).replace(/\D/g, '');
+      if (cleaned.length === 12 && cleaned.startsWith('91')) {
+        cleaned = cleaned.substring(2);
+      }
+      return cleaned;
+    };
+
     wss.on('connection', (ws) => {
       wsClients.add(ws);
       logger.info(`[WS] Client connected. Total clients: ${wsClients.size}`);
@@ -484,11 +493,74 @@ const startServer = async () => {
           const data = JSON.parse(message);
           logger.info(`[WS] Received message: ${JSON.stringify(data)}`);
 
-          // Broadcast to all other connected clients
+          if (data.type === 'join') {
+            ws.userId = data.userId;
+            ws.role = data.role;
+            ws.phone = normalizePhone(data.phone);
+            logger.info(`[WS] Client registered: role=${ws.role}, userId=${ws.userId}, phone=${ws.phone}`);
+            return;
+          }
+
           const broadcastMsg = JSON.stringify(data);
-          for (const client of wsClients) {
-            if (client !== ws && client.readyState === 1) { // 1 is OPEN
-              client.send(broadcastMsg);
+
+          if (data.type === 'chat') {
+            const sender = data.message?.sender;
+            let sent = false;
+            if (sender === 'doctor') {
+              // Target patient by phone
+              const targetPhone = normalizePhone(data.phone);
+              for (const client of wsClients) {
+                if (client.role === 'patient' && client.phone === targetPhone && client.readyState === 1) {
+                  client.send(broadcastMsg);
+                  sent = true;
+                }
+              }
+            } else if (sender === 'patient') {
+              // Target doctor
+              for (const client of wsClients) {
+                if (client.role === 'doctor' && client.readyState === 1) {
+                  client.send(broadcastMsg);
+                  sent = true;
+                }
+              }
+            }
+            // Fallback to old broadcast if not routed (for backwards compatibility/robustness)
+            if (!sent) {
+              logger.info(`[WS] Chat message fallback to broadcast`);
+              for (const client of wsClients) {
+                if (client !== ws && client.readyState === 1) {
+                  client.send(broadcastMsg);
+                }
+              }
+            }
+          } else if (data.type === 'call_start') {
+            const targetPhone = normalizePhone(data.targetPhone);
+            logger.info(`[WS] Routing call_start to phone: ${targetPhone}`);
+            for (const client of wsClients) {
+              if (client.role === 'patient' && client.phone === targetPhone && client.readyState === 1) {
+                client.send(broadcastMsg);
+              }
+            }
+          } else if (data.type === 'call_accept' || data.type === 'call_decline') {
+            logger.info(`[WS] Routing ${data.type} to doctors`);
+            for (const client of wsClients) {
+              if (client.role === 'doctor' && client.readyState === 1) {
+                client.send(broadcastMsg);
+              }
+            }
+          } else if (data.type === 'call_end') {
+            // Send call_end to everyone else connected to make sure the call state is cleared everywhere
+            for (const client of wsClients) {
+              if (client !== ws && client.readyState === 1) {
+                client.send(broadcastMsg);
+              }
+            }
+          } else {
+            // General broadcast fallback
+            for (const client of wsClients) {
+              if (client !== ws && client.readyState === 1) {
+                client.send(broadcastMsg);
+              }
             }
           }
         } catch (err) {

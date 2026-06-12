@@ -158,8 +158,8 @@ function getRoomName(patient) {
   return `${ROOM_PREFIX}-${clean}`;
 }
 
-function getJitsiUrl(patient) {
-  const room = getRoomName(patient);
+function getJitsiUrl(patient, videoCall) {
+  const room = videoCall?.roomName || getRoomName(patient);
   const name = encodeURIComponent('Dr. Lawrence');
   const params = [
     'config.prejoinPageEnabled=false',
@@ -260,7 +260,7 @@ export default function VideoScreen() {
   // ── Active call — WebView with Jitsi ──
   if (videoCall.isActive) {
     const patient = videoCall.patient;
-    const jitsiUrl = getJitsiUrl(patient);
+    const jitsiUrl = getJitsiUrl(patient, videoCall);
 
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }}>

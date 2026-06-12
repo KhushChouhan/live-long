@@ -9,20 +9,20 @@ import {
   Platform,
   SafeAreaView
 } from 'react-native';
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, router } from 'expo-router';
 import { useDoctor } from '../../../../store/DoctorContext';
 import { Send, User, Phone, Video } from 'lucide-react-native';
 import { MotiView } from 'moti';
 
 export default function ChatScreen() {
   const { patientId: paramPatientId } = useLocalSearchParams();
-  const { appointments, chats, sendMessage } = useDoctor();
+  const { appointments, chats, sendMessage, startVideoConsult } = useDoctor();
 
   // Find patients with chat logs or scheduled slots
   const chatPatients = appointments.filter(a => a.status === 'Active' || a.status === 'Pending' || a.status === 'Completed');
   
   // Set selected patient
-  const [selectedPatientId, setSelectedPatientId] = useState(paramPatientId || chatPatients[2]?.id || chatPatients[0]?.id);
+  const [selectedPatientId, setSelectedPatientId] = useState(paramPatientId || chatPatients[0]?.id);
   const [inputText, setInputText] = useState('');
   
   const scrollViewRef = useRef(null);
@@ -119,10 +119,22 @@ export default function ChatScreen() {
 
             {/* Quick Actions (Join call placeholder) */}
             <View className="flex-row gap-2">
-              <TouchableOpacity className="p-2 rounded-xl bg-slate-100 border border-slate-200">
+              <TouchableOpacity 
+                onPress={() => {
+                  startVideoConsult(selectedPatientId);
+                  router.push('/doctor/video');
+                }}
+                className="p-2 rounded-xl bg-slate-100 border border-slate-200"
+              >
                 <Phone size={14} color="#475569" />
               </TouchableOpacity>
-              <TouchableOpacity className="p-2 rounded-xl bg-cyan-50 border border-cyan-150">
+              <TouchableOpacity 
+                onPress={() => {
+                  startVideoConsult(selectedPatientId);
+                  router.push('/doctor/video');
+                }}
+                className="p-2 rounded-xl bg-cyan-50 border border-cyan-150"
+              >
                 <Video size={14} color="#0891b2" />
               </TouchableOpacity>
             </View>
