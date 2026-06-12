@@ -92,9 +92,9 @@ const DOCTOR_REPORTS = [
   {
     id: 'DR-810',
     date: '2026-06-01',
-    name: 'Lipid Panel - Karan Sharma',
-    patient: 'Karan Sharma',
-    age: 29,
+    name: 'Lipid Panel - Karan',
+    patient: 'Karan',
+    age: 28,
     status: 'Abnormal',
     lab: 'LiveLong Central Diagnostics',
     signedOff: false,
@@ -109,9 +109,9 @@ const DOCTOR_REPORTS = [
   {
     id: 'DR-531',
     date: '2026-05-29',
-    name: 'Thyroid Panel - Chinu Choudhary',
-    patient: 'Chinu Choudhary',
-    age: 26,
+    name: 'Thyroid Panel - Sonia',
+    patient: 'Sonia',
+    age: 27,
     status: 'Abnormal',
     lab: 'LiveLong Central Diagnostics',
     signedOff: false,
@@ -119,21 +119,6 @@ const DOCTOR_REPORTS = [
     biomarkers: [
       { name: 'TSH (Thyroid Stimulating Hormone)', value: 5.8, unit: 'uIU/mL', range: '0.4 - 4.0', status: 'High' },
       { name: 'Free T4 (Thyroxine)', value: 1.1, unit: 'ng/dL', range: '0.8 - 1.8', status: 'Normal' }
-    ]
-  },
-  {
-    id: 'DR-221',
-    date: '2026-05-24',
-    name: 'CBC Panel - Amit Patel',
-    patient: 'Amit Patel',
-    age: 42,
-    status: 'Normal',
-    lab: 'Metro Labs, New Delhi',
-    signedOff: true,
-    notes: 'Hemoglobin levels healthy.',
-    biomarkers: [
-      { name: 'Hemoglobin', value: 14.2, unit: 'g/dL', range: '13.0 - 17.0', status: 'Normal' },
-      { name: 'WBC', value: 5.4, unit: 'K/uL', range: '4.0 - 11.0', status: 'Normal' }
     ]
   }
 ];

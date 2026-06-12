@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,6 +11,9 @@ import {
 } from 'react-native';
 import { MotiView } from 'moti';
 import { usePathname } from 'expo-router';
+import { useDoctor } from '../../../store/DoctorContext';
+import { useAuth } from '../../../store/AuthContext';
+import { normalizePhone } from '../../../utils/roomUtils';
 import {
   Pill,
   Sunrise,
@@ -176,14 +179,71 @@ export default function MedicationTracker() {
   const pathname = usePathname();
   const isDoctor = pathname.includes('/doctor');
 
-  const [meds, setMeds] = useState(PATIENT_MEDS);
+  const { prescriptions, patients } = useDoctor();
+  const { user } = useAuth();
+
+  const getPatientId = () => {
+    if (!user || !user.phone) return 'p1';
+    const normUserPhone = normalizePhone(user.phone);
+    const matched = patients.find(p => normalizePhone(p.phone) === normUserPhone);
+    return matched ? matched.id : 'p1';
+  };
+  const loggedPatientId = getPatientId();
+
+  // Dynamically compute meds array from prescriptions
+  const computedMeds = useMemo(() => {
+    const list = [];
+    const userRxs = prescriptions.filter(p => p.patientId === loggedPatientId);
+    
+    userRxs.forEach(rx => {
+      rx.details.forEach((med, idx) => {
+        const durationDays = parseInt(med.duration) || 5;
+        const prescriptionDate = new Date(rx.date);
+        const expiryDate = new Date(prescriptionDate.getTime() + durationDays * 24 * 60 * 60 * 1000);
+        const isActive = expiryDate >= new Date();
+        
+        let routine = 'morning';
+        const dosageLower = String(med.dosage || '').toLowerCase();
+        if (dosageLower.includes('evening') || dosageLower.includes('night') || dosageLower.includes('bedtime') || dosageLower.includes('dinner')) {
+          routine = 'evening';
+        } else if (dosageLower.includes('afternoon') || dosageLower.includes('lunch')) {
+          routine = 'afternoon';
+        }
+
+        list.push({
+          id: `${rx.id}-${idx}`,
+          name: med.name,
+          type: med.name.toLowerCase().includes('cream') ? 'Cream' : 'Tablet',
+          category: rx.diagnosis || 'General',
+          routine: routine,
+          time: routine === 'morning' ? '08:00 AM' : (routine === 'afternoon' ? '01:00 PM' : '08:00 PM'),
+          instructions: med.dosage,
+          status: isActive ? 'pending' : 'expired',
+          totalPills: durationDays * (dosageLower.includes('twice') ? 2 : 1),
+          remainingPills: isActive ? durationDays : 0,
+          date: rx.date,
+          duration: durationDays,
+          isActive: isActive
+        });
+      });
+    });
+    
+    return list;
+  }, [prescriptions, loggedPatientId, patients]);
+
+  const [localMeds, setLocalMeds] = useState([]);
+  
+  useEffect(() => {
+    setLocalMeds(computedMeds);
+  }, [computedMeds]);
+
   const [complianceList, setComplianceList] = useState(DOCTOR_COMPLIANCE);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState('all'); // all | morning/compliant | afternoon/warning | evening/critical
   const [expandedPatientId, setExpandedPatientId] = useState(null);
 
   const toggleStatus = (id, newStatus) => {
-    setMeds(meds.map(m => m.id === id ? { ...m, status: newStatus } : m));
+    setLocalMeds(prev => prev.map(m => m.id === id ? { ...m, status: newStatus } : m));
   };
 
   const triggerRefill = (id, name) => {
@@ -195,7 +255,7 @@ export default function MedicationTracker() {
         {
           text: 'Refill Now',
           onPress: () => {
-            setMeds(meds.map(m => m.id === id ? { ...m, remainingPills: m.totalPills } : m));
+            setLocalMeds(prev => prev.map(m => m.id === id ? { ...m, remainingPills: m.totalPills } : m));
             Alert.alert('Refill Ordered', 'Your pharmacy order has been submitted successfully.');
           }
         }
@@ -207,14 +267,15 @@ export default function MedicationTracker() {
     setExpandedPatientId(expandedPatientId === id ? null : id);
   };
 
-  // Calculations for Patient View
+  // Calculations for Patient View (only active ones for today's timeline)
   const filteredMeds = useMemo(() => {
-    return meds.filter(item => {
+    return localMeds.filter(item => {
+      if (!item.isActive) return false; // hide expired ones from today's timeline
       const matchesType = filterType === 'all' || item.routine === filterType;
       const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase());
       return matchesType && matchesSearch;
     });
-  }, [meds, filterType, searchQuery]);
+  }, [localMeds, filterType, searchQuery]);
 
   // Calculations for Doctor View
   const filteredCompliance = useMemo(() => {
@@ -239,13 +300,14 @@ export default function MedicationTracker() {
         critical: complianceList.filter(c => c.status === 'Critical Alert').length,
       };
     }
+    const activeOnly = localMeds.filter(m => m.isActive);
     return {
-      total: meds.length,
-      morning: meds.filter(a => a.routine === 'morning').length,
-      afternoon: meds.filter(a => a.routine === 'afternoon').length,
-      evening: meds.filter(a => a.routine === 'evening').length,
+      total: activeOnly.length,
+      morning: activeOnly.filter(a => a.routine === 'morning').length,
+      afternoon: activeOnly.filter(a => a.routine === 'afternoon').length,
+      evening: activeOnly.filter(a => a.routine === 'evening').length,
     };
-  }, [meds, complianceList, isDoctor]);
+  }, [localMeds, complianceList, isDoctor]);
 
   const getAdherenceColor = (compliance) => {
     if (compliance >= 85) return C.green;
@@ -619,43 +681,78 @@ export default function MedicationTracker() {
         <View style={styles.rightColumn}>
           <Text style={styles.sectionHeaderTitle}>Refill Alerts & Inventory</Text>
           <View style={styles.inventoryPanel}>
-            {meds.map((item) => {
-              const refillPct = (item.remainingPills / item.totalPills) * 100;
-              const isLow = item.remainingPills <= 5 || refillPct <= 20;
-              return (
+            {localMeds.filter(m => m.isActive).length === 0 ? (
+              <View style={styles.emptyContainerSmall}>
+                <Pill size={16} color={C.textLight} />
+                <Text style={styles.emptyTitleSmall}>No active medications</Text>
+              </View>
+            ) : (
+              localMeds.filter(m => m.isActive).map((item) => {
+                const refillPct = (item.remainingPills / item.totalPills) * 100;
+                const isLow = item.remainingPills <= 5 || refillPct <= 20;
+                return (
+                  <View key={item.id} style={styles.refillRow}>
+                    <View style={styles.refillHeader}>
+                      <View>
+                        <Text style={styles.refillMedName}>{item.name}</Text>
+                        <Text style={styles.refillCountTxt}>{item.remainingPills} of {item.totalPills} pills left</Text>
+                      </View>
+                      {isLow && (
+                        <View style={styles.warningBadge}>
+                          <AlertTriangle size={11} color={C.red} />
+                          <Text style={styles.warningBadgeTxt}>LOW STOCK</Text>
+                        </View>
+                      )}
+                    </View>
+                    <View style={styles.barOuter}>
+                      <View style={[
+                        styles.barInner,
+                        { width: `${refillPct}%` },
+                        isLow ? { backgroundColor: C.red } : refillPct <= 50 ? { backgroundColor: C.amber } : { backgroundColor: C.green }
+                      ]} />
+                    </View>
+                    {isLow && (
+                      <TouchableOpacity
+                        onPress={() => triggerRefill(item.id, item.name)}
+                        style={styles.requestRefillBtn}
+                        activeOpacity={0.8}
+                      >
+                        <RefreshCw size={12} color={C.blue} />
+                        <Text style={styles.requestRefillBtnTxt}>Order Refill Now</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                );
+              })
+            )}
+          </View>
+
+          <Text style={[styles.sectionHeaderTitle, { marginTop: 24 }]}>Old Medications & History</Text>
+          <View style={styles.inventoryPanel}>
+            {localMeds.filter(m => !m.isActive).length === 0 ? (
+              <View style={styles.emptyContainerSmall}>
+                <Clock size={16} color={C.textLight} />
+                <Text style={styles.emptyTitleSmall}>No medication history</Text>
+              </View>
+            ) : (
+              localMeds.filter(m => !m.isActive).map((item) => (
                 <View key={item.id} style={styles.refillRow}>
                   <View style={styles.refillHeader}>
                     <View>
-                      <Text style={styles.refillMedName}>{item.name}</Text>
-                      <Text style={styles.refillCountTxt}>{item.remainingPills} of {item.totalPills} pills left</Text>
+                      <Text style={[styles.refillMedName, { color: C.textLight, textDecorationLine: 'line-through' }]}>
+                        {item.name}
+                      </Text>
+                      <Text style={styles.refillCountTxt}>
+                        Prescribed: {item.date} • Duration: {item.duration} days
+                      </Text>
                     </View>
-                    {isLow && (
-                      <View style={styles.warningBadge}>
-                        <AlertTriangle size={11} color={C.red} />
-                        <Text style={styles.warningBadgeTxt}>LOW STOCK</Text>
-                      </View>
-                    )}
+                    <View style={[styles.warningBadge, { backgroundColor: C.border, borderColor: C.textLight }]}>
+                      <Text style={[styles.warningBadgeTxt, { color: C.textLight }]}>ARCHIVED</Text>
+                    </View>
                   </View>
-                  <View style={styles.barOuter}>
-                    <View style={[
-                      styles.barInner,
-                      { width: `${refillPct}%` },
-                      isLow ? { backgroundColor: C.red } : refillPct <= 50 ? { backgroundColor: C.amber } : { backgroundColor: C.green }
-                    ]} />
-                  </View>
-                  {isLow && (
-                    <TouchableOpacity
-                      onPress={() => triggerRefill(item.id, item.name)}
-                      style={styles.requestRefillBtn}
-                      activeOpacity={0.8}
-                    >
-                      <RefreshCw size={12} color={C.blue} />
-                      <Text style={styles.requestRefillBtnTxt}>Order Refill Now</Text>
-                    </TouchableOpacity>
-                  )}
                 </View>
-              );
-            })}
+              ))
+            )}
           </View>
         </View>
       </View>
@@ -1055,6 +1152,17 @@ const styles = StyleSheet.create({
     color: C.textLight,
     marginTop: 2,
     fontWeight: '500',
+  },
+  emptyContainerSmall: {
+    paddingVertical: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyTitleSmall: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: C.textLight,
+    marginTop: 4,
   },
   compliancePanel: {
     backgroundColor: C.card,

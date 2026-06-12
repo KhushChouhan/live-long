@@ -38,6 +38,8 @@ export default function DoctorAppointmentListScreen() {
     cancelAppointment, 
     bulkRescheduleRemaining,
     notifyPatient,
+    acceptAppointment,
+    rejectAppointment,
     TODAY_STR,
     TOMORROW_STR
   } = useDoctor();
@@ -299,9 +301,24 @@ export default function DoctorAppointmentListScreen() {
                           <Text className="text-amber-700 text-[8px] font-black uppercase">Rescheduled</Text>
                         </View>
                       )}
-                      {pending && appt.status === 'Active' && (
+                      {appt.status === 'Pending' && (
+                        <View className="bg-amber-50 px-2 py-1 rounded-lg">
+                          <Text className="text-amber-700 text-[8px] font-black uppercase">Pending</Text>
+                        </View>
+                      )}
+                      {appt.status === 'Confirmed' && (
+                        <View className="bg-sky-50 px-2 py-1 rounded-lg">
+                          <Text className="text-sky-700 text-[8px] font-black uppercase">Confirmed</Text>
+                        </View>
+                      )}
+                      {appt.status === 'Rejected' && (
                         <View className="bg-rose-50 px-2 py-1 rounded-lg">
-                          <Text className="text-rose-700 text-[8px] font-black uppercase">Active</Text>
+                          <Text className="text-rose-700 text-[8px] font-black uppercase">Rejected</Text>
+                        </View>
+                      )}
+                      {appt.status === 'Scheduled' && (
+                        <View className="bg-sky-50 px-2 py-1 rounded-lg">
+                          <Text className="text-sky-700 text-[8px] font-black uppercase">Scheduled</Text>
                         </View>
                       )}
                     </View>
@@ -315,7 +332,31 @@ export default function DoctorAppointmentListScreen() {
                   </View>
 
                   {/* Actions Deck */}
-                  {!completed && !cancelled && (
+                  {appt.status === 'Pending' ? (
+                    <View className="flex-row gap-2 border-t border-slate-100 pt-4 mt-4">
+                      <TouchableOpacity 
+                        onPress={() => {
+                          acceptAppointment(appt.id);
+                          triggerToast(`✅ Appointment for ${appt.name} accepted/confirmed.`);
+                        }}
+                        style={{ backgroundColor: '#10B981', borderColor: '#10B981' }}
+                        className="flex-1 py-2.5 rounded-xl items-center justify-center border"
+                      >
+                        <Text className="text-white text-[10px] font-black uppercase">Accept</Text>
+                      </TouchableOpacity>
+
+                      <TouchableOpacity 
+                        onPress={() => {
+                          rejectAppointment(appt.id);
+                          triggerToast(`❌ Appointment for ${appt.name} rejected.`);
+                        }}
+                        style={{ backgroundColor: '#EF4444', borderColor: '#EF4444' }}
+                        className="flex-1 py-2.5 rounded-xl items-center justify-center border"
+                      >
+                        <Text className="text-white text-[10px] font-black uppercase">Reject</Text>
+                      </TouchableOpacity>
+                    </View>
+                  ) : (!completed && !cancelled && appt.status !== 'Rejected' && (
                     <View className="flex-row gap-2 border-t border-slate-100 pt-4 mt-4">
                       <TouchableOpacity 
                         onPress={() => {
@@ -345,7 +386,7 @@ export default function DoctorAppointmentListScreen() {
                         <Text className="text-amber-700 text-[10px] font-black uppercase">Notify</Text>
                       </TouchableOpacity>
                     </View>
-                  )}
+                  ))}
                 </MotiView>
               );
             })

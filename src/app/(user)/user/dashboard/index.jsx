@@ -10,6 +10,7 @@ import { MotiView } from 'moti';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useDoctor } from '../../../../store/DoctorContext';
 import { router } from 'expo-router';
+import { normalizePhone } from '../../../../utils/roomUtils';
 
 // ── LiveLong Brand Tokens ─────────────────────────────────────────────────────
 const C = {
@@ -171,14 +172,24 @@ const ApptCard = ({ appt }) => {
           </View>
         </View>
       </View>
-      {appt.status !== 'Completed' && (
-        <View style={{ marginTop: 10, flexDirection: 'row', alignItems: 'center', backgroundColor: video ? C.blueSoft : C.greenSoft, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 8, gap: 7, borderWidth: 1, borderColor: (video ? C.blue : C.green) + '25' }}>
-          <MotiView from={{ opacity: 0.3 }} animate={{ opacity: 1 }} transition={{ type: 'timing', duration: 800, loop: true }} style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: video ? C.blue : C.green }} />
-          <Text style={{ fontSize: 10, fontWeight: '700', color: video ? C.blueMid : C.green, flex: 1 }}>
-            {video ? 'Doctor will initiate call at scheduled time' : `Confirmed · LiveLong Clinic · ${appt.date}`}
-          </Text>
-        </View>
-      )}
+      {appt.status !== 'Completed' && (() => {
+        const isPending = appt.status === 'Pending';
+        const isRejected = appt.status === 'Rejected' || appt.status === 'Cancelled';
+        const bgCol = isPending ? C.amberSoft : (isRejected ? C.redSoft : (video ? C.blueSoft : C.greenSoft));
+        const borderCol = isPending ? C.amber : (isRejected ? C.red : (video ? C.blue : C.green));
+        const textCol = isPending ? C.amber : (isRejected ? C.red : (video ? C.blueMid : C.green));
+        const statusText = isPending 
+          ? 'Pending Approval · Awaiting doctor confirmation' 
+          : (isRejected ? 'Rejected/Cancelled · Please schedule another slot' : (video ? 'Confirmed · Doctor will initiate call at scheduled time' : `Confirmed · LiveLong Clinic · ${appt.date}`));
+        return (
+          <View style={{ marginTop: 10, flexDirection: 'row', alignItems: 'center', backgroundColor: bgCol, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 8, gap: 7, borderWidth: 1, borderColor: borderCol + '25' }}>
+            <MotiView from={{ opacity: 0.3 }} animate={{ opacity: 1 }} transition={{ type: 'timing', duration: 800, loop: true }} style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: borderCol }} />
+            <Text style={{ fontSize: 10, fontWeight: '700', color: textCol, flex: 1 }}>
+              {statusText}
+            </Text>
+          </View>
+        );
+      })()}
     </View>
   );
 };
@@ -245,7 +256,7 @@ const SectionBlock = ({ color, colorDark, icon, title, count, tag, children, inf
 //  MAIN DASHBOARD
 // ═══════════════════════════════════════════════════════════════════════════════
 export default function UserDashboard() {
-  const { appointments, chats, sendMessage } = useDoctor();
+  const { appointments, chats, sendMessage, patients, prescriptions } = useDoctor();
   const { width: W } = useWindowDimensions(); // reactive on every resize
   const [currentUser, setCurrentUser] = useState(null);
   const [chatOpen, setChatOpen]     = useState(false);
@@ -265,19 +276,19 @@ export default function UserDashboard() {
   const isTab  = W >= 600 && W < 1100;
 
   const getPatientId = () => {
-    if (!currentUser) return '66666666-6666-6666-6666-666666666666';
-    const n = String(currentUser.name || '').toLowerCase();
-    if (n.includes('chinu')) return '77777777-7777-7777-7777-777777777777';
-    return '66666666-6666-6666-6666-666666666666';
+    if (!currentUser || !currentUser.phone) return 'p1';
+    const normUserPhone = normalizePhone(currentUser.phone);
+    const matched = patients.find(p => normalizePhone(p.phone) === normUserPhone);
+    return matched ? matched.id : 'p1';
   };
 
   const patientId      = getPatientId();
   const patientMsgs    = patientId && chats[patientId] ? chats[patientId] : [];
-  const patientAppts   = patientId ? appointments.filter(a => a.id === patientId) : [];
+  const patientAppts   = patientId ? appointments.filter(a => a.patientId === patientId && a.status !== 'Rejected') : [];
   const videoAppts     = patientAppts.filter(a => isVideo(a)    && a.status !== 'Completed');
   const physicalAppts  = patientAppts.filter(a => isPhysical(a) && a.status !== 'Completed');
-  const upcomingCount  = patientAppts.filter(a => a.status !== 'Completed').length;
-  const todayAppt      = patientAppts.find(a => a.status !== 'Completed');
+  const upcomingCount  = patientAppts.filter(a => a.status !== 'Completed' && a.status !== 'Rejected' && a.status !== 'Cancelled').length;
+  const todayAppt      = patientAppts.find(a => a.status !== 'Completed' && a.status !== 'Rejected' && a.status !== 'Cancelled');
 
   const lastMsg   = patientMsgs.length > 0 ? patientMsgs[patientMsgs.length - 1] : null;
   const hasNewMsg = lastMsg && lastMsg.sender === 'doctor';
@@ -300,10 +311,21 @@ export default function UserDashboard() {
 
   const greeting = getGreeting();
 
+  // Compute active prescriptions dynamically
+  const userPrescriptions = prescriptions.filter(p => p.patientId === patientId);
+  const activePrescriptionsCount = userPrescriptions.filter(p => {
+    return p.details.some(med => {
+      const durationDays = parseInt(med.duration) || 5;
+      const prescriptionDate = new Date(p.date);
+      const expiryDate = new Date(prescriptionDate.getTime() + durationDays * 24 * 60 * 60 * 1000);
+      return expiryDate >= new Date();
+    });
+  }).length;
+
   // ── Stat data ───────────────────────────────────────────────────────────────
   const stats = [
     { title: 'Appointments', count: upcomingCount || 0, sub: 'Upcoming', icon: 'calendar',    color: C.blue,   soft: C.blueSoft,   href: '/user/appointments/appointment-list', delay: 0 },
-    { title: 'Prescriptions', count: 3,                 sub: 'Active',   icon: 'file-text',   color: C.teal,   soft: C.tealSoft,   href: '/user/prescriptions/prescription-list', delay: 60 },
+    { title: 'Prescriptions', count: activePrescriptionsCount, sub: 'Active',   icon: 'file-text',   color: C.teal,   soft: C.tealSoft,   href: '/user/prescriptions/prescription-list', delay: 60 },
     { title: 'Lab Reports',   count: 1,                 sub: 'Pending',  icon: 'activity',    color: C.amber,  soft: C.amberSoft,  href: '/user/lab-reports/lab-report-list', badge: 'New', delay: 120 },
     { title: 'Invoices',      count: '₹0',              sub: 'Cleared',  icon: 'credit-card', color: C.green,  soft: C.greenSoft,  href: '/user/invoices/invoice-list', delay: 180 },
   ];

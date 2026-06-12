@@ -272,25 +272,6 @@ const seedMockDatabase = async () => {
       allergies: 'None'
     });
 
-    // ── PATIENT 2 (Chinu) ──────────────────────────────────────────
-    const patUser2 = await ensureUser({
-      id: '77777777-7777-7777-7777-777777777777',
-      name: 'chinu',
-      email: 'chinu@livelong.com',
-      phone: '+919680796461',
-      password: chinuHashedPassword,
-      role: 'patient',
-      isAadhaarVerified: true,
-      isActive: true
-    }, 'patient', {
-      id: 'ffffffff-ffff-ffff-ffff-ffffffffffff',
-      dateOfBirth: '1995-08-20',
-      gender: 'male',
-      bloodGroup: 'O+',
-      emergencyContactName: 'Emergency Contact',
-      emergencyContactPhone: '+919680079647',
-      allergies: 'None'
-    });
 
     // ── PATIENT 3 (Sonia) ──────────────────────────────────────────
     const patUser3 = await ensureUser({
@@ -354,14 +335,6 @@ const seedMockDatabase = async () => {
       status: 'verified'
     });
 
-    await ensureAadhaar({
-      id: 'e45b3f6e-27a4-5e54-9bc3-2d7e971af4e5',
-      userId: patUser2._id,
-      aadhaarHash: 'dbd6f43e5c94a2b168a4fa16b208fa5f7c1e3768b1ff53e811c79a834b6e27ff',
-      transactionId: 'TXN-AADHAAR-PAT-40284',
-      verifiedAt: new Date(),
-      status: 'verified'
-    });
 
     await ensureAadhaar({
       id: 'f45b3f6e-27a4-5e54-9bc3-2d7e971af4e5',
@@ -383,15 +356,6 @@ const seedMockDatabase = async () => {
       symptoms: 'Routine checkup for mild heart rate variations.'
     });
 
-    await Appointment.create({
-      _id: 'b5555555-5555-5555-5555-555555555555',
-      doctorId: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
-      patientId: 'ffffffff-ffff-ffff-ffff-ffffffffffff', // Chinu
-      appointmentDate: new Date(Date.now() + 48 * 60 * 60 * 1000),
-      status: 'scheduled',
-      type: 'video',
-      symptoms: 'Cardiology follow-up consultation.'
-    });
 
     await Appointment.create({
       _id: 'c5555555-5555-5555-5555-555555555555',
@@ -415,16 +379,6 @@ const seedMockDatabase = async () => {
       recordDate: '2026-05-25'
     });
 
-    await MedicalRecord.create({
-      _id: '77777777-7777-7777-7777-777777777777',
-      patientId: 'ffffffff-ffff-ffff-ffff-ffffffffffff', // Chinu
-      doctorId: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
-      recordType: 'prescription',
-      title: 'Initial Health Assessment',
-      description: 'General evaluation of cardiovascular health.',
-      fileUrl: '/uploads/prescriptions/prescription_103.pdf',
-      recordDate: '2026-05-28'
-    });
 
     await MedicalRecord.create({
       _id: '88888888-8888-8888-8888-888888888888',

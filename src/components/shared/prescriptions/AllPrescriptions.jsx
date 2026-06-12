@@ -13,6 +13,9 @@ import {
 } from 'react-native';
 import { MotiView } from 'moti';
 import { usePathname } from 'expo-router';
+import { useDoctor } from '../../../store/DoctorContext';
+import { useAuth } from '../../../store/AuthContext';
+import { normalizePhone } from '../../../utils/roomUtils';
 import {
   FileText,
   Activity,
@@ -149,9 +152,16 @@ export default function AllPrescriptions() {
   const pathname = usePathname();
   const isDoctor = pathname.includes('/doctor');
 
-  const [prescriptions, setPrescriptions] = useState(
-    isDoctor ? DOCTOR_PRESCRIPTIONS : PATIENT_PRESCRIPTIONS
-  );
+  const { prescriptions, addPrescription, patients } = useDoctor();
+  const { user } = useAuth();
+
+  const getPatientId = () => {
+    if (!user || !user.phone) return 'p1';
+    const normUserPhone = normalizePhone(user.phone);
+    const matched = patients.find(p => normalizePhone(p.phone) === normUserPhone);
+    return matched ? matched.id : 'p1';
+  };
+  const loggedPatientId = getPatientId();
   
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState('all'); // all | active | past
@@ -161,9 +171,9 @@ export default function AllPrescriptions() {
   
   // Custom Rx Creator Modal State
   const [rxModalOpen, setRxModalOpen] = useState(false);
-  const [rxPatientName, setRxPatientName] = useState('Karan Sharma');
+  const [rxPatientName, setRxPatientName] = useState('Karan');
   const [rxDiagnosis, setRxDiagnosis] = useState('Essential Hypertension');
-  const [rxMeds, setRxMeds] = useState('Telmisartan 40mg (1 daily - 30 days)');
+  const [rxMeds, setRxMeds] = useState('Telmisartan 40mg (1 daily - 5 days)');
   const [rxRefills, setRxRefills] = useState('2');
   const [isSavingRx, setIsSavingRx] = useState(false);
 
@@ -194,21 +204,31 @@ export default function AllPrescriptions() {
       setIsSavingRx(false);
       setRxModalOpen(false);
       
+      const matched = patients.find(p => p.name.toLowerCase().includes(rxPatientName.toLowerCase()));
+      const patientId = matched ? matched.id : 'p1';
+
+      // Parse duration from text or default to 5 days
+      let durationStr = '5 days';
+      const durationMatch = rxMeds.match(/(\d+)\s*day/i);
+      if (durationMatch) {
+        durationStr = `${durationMatch[1]} days`;
+      }
+
       const newRx = {
-        id: 'DP' + Math.floor(200 + Math.random() * 800),
-        date: new Date().toISOString().split('T')[0],
-        patientName: rxPatientName,
-        age: 30,
+        patientId,
+        patientName: matched ? matched.name : rxPatientName,
+        doctorName: 'Dr. Catherine L.',
+        specialty: 'Senior Cardiologist',
         diagnosis: rxDiagnosis,
         medicationsSummary: rxMeds,
         status: 'active',
         refills: parseInt(rxRefills) || 0,
         details: [
-          { name: rxMeds.split('(')[0].trim(), dosage: rxMeds, duration: '30 days' }
+          { name: rxMeds.split('(')[0].trim(), dosage: rxMeds, duration: durationStr }
         ]
       };
       
-      setPrescriptions([newRx, ...prescriptions]);
+      addPrescription(newRx);
       setToastMsg('Prescription issued and sent to patient!');
       setShowToast(true);
       setTimeout(() => setShowToast(false), 3000);
@@ -218,6 +238,10 @@ export default function AllPrescriptions() {
   // Filter calculations
   const filteredData = useMemo(() => {
     return prescriptions.filter(item => {
+      // 1. Patient ID Filter (only for patient views)
+      if (!isDoctor && item.patientId !== loggedPatientId) return false;
+
+      // 2. Type Filter
       const matchesType = filterType === 'all' || item.status === filterType;
       
       const q = searchQuery.toLowerCase();
@@ -240,16 +264,17 @@ export default function AllPrescriptions() {
 
       return matchesType && matchesSearch && matchesDate;
     });
-  }, [prescriptions, filterType, searchQuery, dateFilter, isDoctor]);
+  }, [prescriptions, filterType, searchQuery, dateFilter, isDoctor, loggedPatientId]);
 
   const stats = useMemo(() => {
+    const data = isDoctor ? prescriptions : prescriptions.filter(p => p.patientId === loggedPatientId);
     return {
-      total: prescriptions.length,
-      active: prescriptions.filter(p => p.status === 'active').length,
-      past: prescriptions.filter(p => p.status === 'past').length,
-      refills: prescriptions.filter(p => p.refills > 0).length,
+      total: data.length,
+      active: data.filter(p => p.status === 'active').length,
+      past: data.filter(p => p.status === 'past').length,
+      refills: data.filter(p => p.refills > 0).length,
     };
-  }, [prescriptions]);
+  }, [prescriptions, loggedPatientId, isDoctor]);
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: C.bg }} contentContainerStyle={{ padding: 24, paddingBottom: 100 }}>

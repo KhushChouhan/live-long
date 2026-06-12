@@ -125,8 +125,8 @@ const PATIENT_APPOINTMENTS = [
 const DOCTOR_APPOINTMENTS = [
   {
     id: 'd1',
-    patientName: 'Karan Sharma',
-    age: 29,
+    patientName: 'Karan',
+    age: 28,
     gender: 'Male',
     date: '2026-06-01',
     time: '10:00 AM - 10:30 AM',
@@ -139,8 +139,8 @@ const DOCTOR_APPOINTMENTS = [
   },
   {
     id: 'd2',
-    patientName: 'Chinu Choudhary',
-    age: 26,
+    patientName: 'Sonia',
+    age: 27,
     gender: 'Female',
     date: '2026-06-01',
     time: '11:00 AM - 11:30 AM',

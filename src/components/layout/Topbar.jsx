@@ -207,52 +207,59 @@ export default function Topbar({ onMenuPress }) {
   if (isMobile) {
     return (
       <View style={{
-        height: 60, backgroundColor: '#fff',
+        height: 56, backgroundColor: '#fff',
         borderBottomWidth: 1, borderBottomColor: '#E2E8F0',
         flexDirection: 'row', alignItems: 'center',
-        paddingHorizontal: 14, gap: 10,
+        paddingHorizontal: 12,
         position: 'relative', zIndex: 1000,
       }}>
         {/* Hamburger */}
         <TouchableOpacity
           onPress={onMenuPress}
-          style={{ width: 40, height: 40, alignItems: 'center', justifyContent: 'center', borderRadius: 10 }}
+          style={{ width: 38, height: 38, alignItems: 'center', justifyContent: 'center', borderRadius: 8 }}
         >
-          <Feather name="menu" size={22} color="#475569" />
+          <Feather name="menu" size={20} color="#475569" />
         </TouchableOpacity>
 
-        {/* Title (centered) */}
-        <View style={{ flex: 1 }}>
-          <Text style={{ fontSize: 16, fontWeight: '800', color: isUserPath ? '#0066FF' : '#0F172A', letterSpacing: -0.3 }}>
+        {/* Title */}
+        <View style={{ flex: 1, marginLeft: 6 }}>
+          <Text 
+            style={{ fontSize: 15, fontWeight: '800', color: isUserPath ? '#0066FF' : '#0F172A', letterSpacing: -0.3 }}
+            numberOfLines={1}
+            ellipsizeMode="tail"
+          >
             {getTitle(pathname)}
           </Text>
         </View>
 
-        {/* Search icon */}
-        <TouchableOpacity
-          onPress={() => setSearchVisible(true)}
-          style={{ width: 40, height: 40, alignItems: 'center', justifyContent: 'center', borderRadius: 10, backgroundColor: '#F8FAFC', borderWidth: 1, borderColor: '#E2E8F0' }}
-        >
-          <Feather name="search" size={18} color="#64748B" />
-        </TouchableOpacity>
-
-        {/* Bell */}
-        <View style={{ position: 'relative', zIndex: 50 }}>
+        {/* Actions Container */}
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          {/* Search icon */}
           <TouchableOpacity
-            onPress={() => setShowNotif(!showNotif)}
-            style={{ width: 40, height: 40, alignItems: 'center', justifyContent: 'center', borderRadius: 10, backgroundColor: '#F8FAFC', borderWidth: 1, borderColor: '#E2E8F0' }}
+            onPress={() => setSearchVisible(true)}
+            style={{ width: 36, height: 36, alignItems: 'center', justifyContent: 'center', borderRadius: 8, backgroundColor: '#F8FAFC', borderWidth: 1, borderColor: '#E2E8F0' }}
           >
-            <Feather name="bell" size={18} color="#64748B" />
-            {unreadNotifs > 0 && (
-              <View style={{ position: 'absolute', top: 8, right: 8, width: 8, height: 8, borderRadius: 4, backgroundColor: '#3B82F6', borderWidth: 1.5, borderColor: '#fff' }} />
-            )}
+            <Feather name="search" size={16} color="#64748B" />
           </TouchableOpacity>
-          <NotifPanel />
-        </View>
 
-        {/* Avatar */}
-        <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: '#DBEAFE', borderWidth: 1.5, borderColor: '#93C5FD', alignItems: 'center', justifyContent: 'center' }}>
-          <Text style={{ fontSize: 12, fontWeight: '800', color: '#1D4ED8' }}>{getInitials()}</Text>
+          {/* Bell */}
+          <View style={{ position: 'relative', zIndex: 50 }}>
+            <TouchableOpacity
+              onPress={() => setShowNotif(!showNotif)}
+              style={{ width: 36, height: 36, alignItems: 'center', justifyContent: 'center', borderRadius: 8, backgroundColor: '#F8FAFC', borderWidth: 1, borderColor: '#E2E8F0' }}
+            >
+              <Feather name="bell" size={16} color="#64748B" />
+              {unreadNotifs > 0 && (
+                <View style={{ position: 'absolute', top: 6, right: 6, width: 7, height: 7, borderRadius: 3.5, backgroundColor: '#3B82F6', borderWidth: 1.2, borderColor: '#fff' }} />
+              )}
+            </TouchableOpacity>
+            <NotifPanel />
+          </View>
+
+          {/* Avatar */}
+          <View style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: '#DBEAFE', borderWidth: 1.5, borderColor: '#93C5FD', alignItems: 'center', justifyContent: 'center' }}>
+            <Text style={{ fontSize: 11, fontWeight: '800', color: '#1D4ED8' }}>{getInitials()}</Text>
+          </View>
         </View>
 
         <SearchOverlay />

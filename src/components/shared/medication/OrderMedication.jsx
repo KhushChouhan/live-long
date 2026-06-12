@@ -75,9 +75,8 @@ const INITIAL_ORDERS = [
 
 // ── Doctor View: Patient Refill Requests ──
 const INITIAL_REFILL_REQUESTS = [
-  { id: 'RF-90', date: '2026-06-01', patient: 'Karan Sharma', medicine: 'Metformin 500mg', refillsLeft: 2, status: 'Pending' },
-  { id: 'RF-77', date: '2026-05-31', patient: 'Chinu Choudhary', medicine: 'Telmisartan 40mg', refillsLeft: 4, status: 'Pending' },
-  { id: 'RF-42', date: '2026-05-28', patient: 'Amit Patel', medicine: 'Atorvastatin 40mg', refillsLeft: 0, status: 'Approved' }
+  { id: 'RF-90', date: '2026-06-01', patient: 'Karan', medicine: 'Metformin 500mg', refillsLeft: 2, status: 'Pending' },
+  { id: 'RF-77', date: '2026-05-31', patient: 'Sonia', medicine: 'Telmisartan 40mg', refillsLeft: 4, status: 'Pending' }
 ];
 
 export default function OrderMedication() {

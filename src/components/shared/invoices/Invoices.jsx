@@ -63,10 +63,8 @@ const PATIENT_INVOICES = [
 
 // ── Doctor Revenue Billings Data ──
 const DOCTOR_INVOICES = [
-  { id: 'INV-3001', date: '2026-06-01', patient: 'Karan Sharma', service: 'Video Consultation Session', amount: 1500, status: 'Paid' },
-  { id: 'INV-3002', date: '2026-06-01', patient: 'Chinu Choudhary', service: 'Video Consultation Session', amount: 1500, status: 'Paid' },
-  { id: 'INV-3003', date: '2026-05-28', patient: 'Amit Patel', service: 'Clinical Cardiology Review', amount: 3000, status: 'Pending' },
-  { id: 'INV-2914', date: '2026-05-18', patient: 'Vikram Singh', service: 'In-Clinic ECG & Stress Test', amount: 4500, status: 'Overdue' }
+  { id: 'INV-3001', date: '2026-06-01', patient: 'Karan', service: 'Video Consultation Session', amount: 1500, status: 'Paid' },
+  { id: 'INV-3002', date: '2026-06-01', patient: 'Sonia', service: 'Video Consultation Session', amount: 1500, status: 'Paid' }
 ];
 
 export default function Invoices() {

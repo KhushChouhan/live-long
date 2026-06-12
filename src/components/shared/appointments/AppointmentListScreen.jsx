@@ -7,6 +7,7 @@ import { MotiView } from 'moti';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useDoctor } from '../../../store/DoctorContext';
 import { router } from 'expo-router';
+import { normalizePhone } from '../../../utils/roomUtils';
 
 // ── LiveLong Tokens ────────────────────────────────────────────────────────────
 const C = {
@@ -263,7 +264,7 @@ const FILTERS = [
 ];
 
 export default function AppointmentListScreen() {
-  const { appointments } = useDoctor();
+  const { appointments, patients } = useDoctor();
   const [currentUser, setCurrentUser]     = useState(null);
   const [activeFilter, setActiveFilter]   = useState('all');
   const [searchQ, setSearchQ]             = useState('');
@@ -275,15 +276,14 @@ export default function AppointmentListScreen() {
   }, []);
 
   const getPatientId = () => {
-    if (!currentUser) return null;
-    const n = String(currentUser.name || '').toLowerCase();
-    if (n.includes('karan')) return '66666666-6666-6666-6666-666666666666';
-    if (n.includes('chinu')) return '77777777-7777-7777-7777-777777777777';
-    return null;
+    if (!currentUser || !currentUser.phone) return 'p1';
+    const normUserPhone = normalizePhone(currentUser.phone);
+    const matched = patients.find(p => normalizePhone(p.phone) === normUserPhone);
+    return matched ? matched.id : 'p1';
   };
 
   const patientId   = getPatientId();
-  const allAppts    = patientId ? appointments.filter(a => a.id === patientId) : [];
+  const allAppts    = patientId ? appointments.filter(a => a.patientId === patientId && a.status !== 'Rejected') : [];
 
   const videoCount    = allAppts.filter(isVideo).length;
   const physicalCount = allAppts.filter(isPhysical).length;

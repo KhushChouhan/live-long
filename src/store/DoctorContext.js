@@ -19,70 +19,68 @@ const FUTURE3 = (() => { const d = new Date(); d.setDate(d.getDate() + 7); retur
 // ─── Initial Patients Registry ──────────────────────────────────
 const INITIAL_PATIENTS = [
   { id: 'p1', name: 'Karan', phone: '918890204260', identity: 'AADH-8890', gender: 'Male', age: 28, bloodGroup: 'B+' },
-  { id: 'p2', name: 'Chinu', phone: '919680796461', identity: 'AADH-9680', gender: 'Female', age: 25, bloodGroup: 'O+' },
-  { id: 'p3', name: 'Karan Singh', phone: '918890204260', identity: 'AADH-1001', gender: 'Male', age: 45, bloodGroup: 'A+' },
-  { id: 'p4', name: 'Priya Sharma', phone: '919876001002', identity: 'AADH-1002', gender: 'Female', age: 32, bloodGroup: 'B-' },
-  { id: 'p5', name: 'John Tan', phone: '919876001003', identity: 'AADH-1003', gender: 'Male', age: 38, bloodGroup: 'O+' },
-  { id: 'p6', name: 'Lisa Wong', phone: '919876001004', identity: 'AADH-1004', gender: 'Female', age: 29, bloodGroup: 'AB+' },
-  { id: 'p7', name: 'David Lim', phone: '919876001005', identity: 'AADH-1005', gender: 'Male', age: 55, bloodGroup: 'A-' },
-  { id: 'p8', name: 'Sara Ali', phone: '919876001006', identity: 'AADH-1006', gender: 'Female', age: 41, bloodGroup: 'B+' },
-  { id: 'p9', name: 'Omar Hassan', phone: '919876001007', identity: 'AADH-1007', gender: 'Male', age: 50, bloodGroup: 'O-' },
-  { id: 'p10', name: 'Emily Chen', phone: '919876001008', identity: 'AADH-1008', gender: 'Female', age: 27, bloodGroup: 'A+' },
-  { id: 'p11', name: 'Mark Raj', phone: '919876001009', identity: 'AADH-1009', gender: 'Male', age: 62, bloodGroup: 'AB-' },
-  { id: 'p12', name: 'Nadia Yusof', phone: '919876001010', identity: 'AADH-1010', gender: 'Female', age: 35, bloodGroup: 'O+' },
   { id: 'p13', name: 'Sonia', phone: '95713299819', identity: 'AADH-9981', gender: 'Female', age: 27, bloodGroup: 'B+' },
 ];
 
 // ─── Initial Appointments (unified — single source of truth) ─────
 const INITIAL_APPOINTMENTS = [
-  { id: 'a1',  patientId: 'p3', name: 'Karan Singh',  phone: '918890204260', identity: 'AADH-1001', gender: 'Male',   time: '09:00 AM', date: TODAY_STR,    type: 'Physical', status: 'Scheduled', complaint: 'Chest pain, follow-up' },
-  { id: 'a2',  patientId: 'p4', name: 'Priya Sharma',  phone: '919876001002', identity: 'AADH-1002', gender: 'Female', time: '09:30 AM', date: TODAY_STR,    type: 'Video',    status: 'Scheduled', complaint: 'Blood pressure review' },
-  { id: 'a3',  patientId: 'p1', name: 'Karan',         phone: '918890204260', identity: 'AADH-8890', gender: 'Male',   time: '10:00 AM', date: TODAY_STR,    type: 'Video',    status: 'Scheduled', complaint: 'Follow-up consultation', amount: 250 },
-  { id: 'a4',  patientId: 'p2', name: 'Chinu',         phone: '919680796461', identity: 'AADH-9680', gender: 'Female', time: '10:30 AM', date: TODAY_STR,    type: 'Video',    status: 'Scheduled', complaint: 'Routine checkup', amount: 350 },
-  { id: 'a5',  patientId: 'p5', name: 'John Tan',      phone: '919876001003', identity: 'AADH-1003', gender: 'Male',   time: '11:00 AM', date: TODAY_STR,    type: 'Physical', status: 'Scheduled', complaint: 'Annual cardiac screening' },
-  { id: 'a6',  patientId: 'p6', name: 'Lisa Wong',     phone: '919876001004', identity: 'AADH-1004', gender: 'Female', time: '11:30 AM', date: TODAY_STR,    type: 'Physical', status: 'Scheduled', complaint: 'ECG evaluation' },
-  { id: 'a7',  patientId: 'p7', name: 'David Lim',     phone: '919876001005', identity: 'AADH-1005', gender: 'Male',   time: '09:00 AM', date: TOMORROW_STR, type: 'Video',    status: 'Scheduled', complaint: 'Post-surgery review' },
-  { id: 'a8',  patientId: 'p8', name: 'Sara Ali',      phone: '919876001006', identity: 'AADH-1006', gender: 'Female', time: '10:00 AM', date: TOMORROW_STR, type: 'Physical', status: 'Scheduled', complaint: 'Medication adjustment' },
-  { id: 'a9',  patientId: 'p9', name: 'Omar Hassan',   phone: '919876001007', identity: 'AADH-1007', gender: 'Male',   time: '11:00 AM', date: TOMORROW_STR, type: 'Physical', status: 'Scheduled', complaint: 'Heart valve assessment' },
-  { id: 'a10', patientId: 'p10',name: 'Emily Chen',    phone: '919876001008', identity: 'AADH-1008', gender: 'Female', time: '09:30 AM', date: FUTURE1,      type: 'Video',    status: 'Scheduled', complaint: 'Cholesterol follow-up' },
-  { id: 'a11', patientId: 'p11',name: 'Mark Raj',      phone: '919876001009', identity: 'AADH-1009', gender: 'Male',   time: '10:30 AM', date: FUTURE2,      type: 'Physical', status: 'Scheduled', complaint: 'Pacemaker evaluation' },
-  { id: 'a12', patientId: 'p12',name: 'Nadia Yusof',   phone: '919876001010', identity: 'AADH-1010', gender: 'Female', time: '02:00 PM', date: FUTURE3,      type: 'Video',    status: 'Scheduled', complaint: 'Post-angioplasty follow-up' },
-  { id: 'a13', patientId: 'p13',name: 'Sonia',         phone: '95713299819', identity: 'AADH-9981', gender: 'Female', time: '03:00 PM', date: TODAY_STR,    type: 'Physical', status: 'Scheduled', complaint: 'General Consultation' },
+  { id: 'a3',  patientId: 'p1', name: 'Karan',         phone: '918890204260', identity: 'AADH-8890', gender: 'Male',   time: '10:00 AM', date: TODAY_STR,    type: 'Video',    status: 'Pending', complaint: 'Follow-up consultation', amount: 250 },
+  { id: 'a13', patientId: 'p13',name: 'Sonia',         phone: '95713299819', identity: 'AADH-9981', gender: 'Female', time: '03:00 PM', date: TODAY_STR,    type: 'Physical', status: 'Pending', complaint: 'General Consultation' },
 ];
 
 // ─── Initial Queue ──────────────────────────────────────────────
-const INITIAL_UPCOMING_QUEUE = [
-  { id: '48', name: 'Nick Young',       identity: 'IC-821948', gender: 'Male',   status: 'Confirmed' },
-  { id: '49', name: 'Muhammad Imran',   identity: 'IC-293847', gender: 'Male',   status: 'Unconfirmed' },
-  { id: '50', name: 'Yi Ting Tan',      identity: 'IC-192836', gender: 'Female', status: 'Unconfirmed' },
-  { id: '51', name: 'Lady Arabella',    identity: 'IC-384756', gender: 'Female', status: 'Unconfirmed' },
-  { id: '52', name: 'Narberal Gamma',   identity: 'IC-475869', gender: 'Female', status: 'Unconfirmed' },
-];
+const INITIAL_UPCOMING_QUEUE = [];
 
-const INITIAL_MISSED_QUEUE = [
-  { id: 'm1', name: 'Charlie Wu',  identity: 'IC-374859', gender: 'Male' },
-  { id: 'm2', name: 'Rachel Wong', identity: 'IC-192837', gender: 'Female' },
-];
+const INITIAL_MISSED_QUEUE = [];
 
 // ─── Initial Checkout ───────────────────────────────────────────
-const INITIAL_CHECKOUT = [
-  { id: 'ck1', name: 'Huisan Li',  identity: 'IC-283746', gender: 'Female', meds: [{ n: 'Panadol 500mg', q: '2x daily' }, { n: 'Omeprazole 20mg', q: '1x daily' }], amount: '₹750.00',  numericAmount: 750,  status: 'Paid' },
-  { id: 'ck2', name: 'Joe White',  identity: 'IC-938271', gender: 'Male',   meds: [{ n: 'Amoxicillin 250mg', q: '3x daily' }, { n: 'Ibuprofen 400mg', q: 'As needed' }], amount: '₹580.00', numericAmount: 580, status: 'Unpaid' },
-];
+const INITIAL_CHECKOUT = [];
 
 // ─── Initial Chats ──────────────────────────────────────────────
 const INITIAL_CHATS = {
-  'a3': [
+  '8890204260': [
     { id: 'c-k-1', text: 'Hello Doctor, this is Karan.', sender: 'patient', timestamp: '11:45 AM' },
     { id: 'c-k-2', text: 'Hi Karan, I am ready to start our Video Consult. Are you online?', sender: 'doctor', timestamp: '11:50 AM' },
     { id: 'c-k-3', text: 'Yes Doctor, ready.', sender: 'patient', timestamp: '11:52 AM' }
   ],
-  'a4': [
-    { id: 'c-3-1', text: 'Hello Doctor, I am experiencing chest discomfort since morning.', sender: 'patient', timestamp: '01:15 PM' },
-    { id: 'c-3-2', text: 'Please take deep breaths Chinu. I am ready to start our Video Consult. Are you online?', sender: 'doctor', timestamp: '01:20 PM' },
-    { id: 'c-3-3', text: 'Yes Doctor, joining in a second.', sender: 'patient', timestamp: '01:22 PM' }
+  '95713299819': [
+    { id: 'c-s-1', text: 'Hello Doctor, this is Sonia.', sender: 'patient', timestamp: '12:00 PM' }
   ]
 };
+
+// ─── Initial Prescriptions ─────────────────────────────────────
+const INITIAL_PRESCRIPTIONS = [
+  {
+    id: 'P102',
+    date: '2026-06-08',
+    patientId: 'p13',
+    patientName: 'Sonia',
+    doctorName: 'Dr. Catherine L.',
+    specialty: 'Senior Cardiologist',
+    diagnosis: 'Mild Chest Discomfort',
+    medicationsSummary: 'Aspirin 75mg',
+    status: 'active',
+    refills: 0,
+    details: [
+      { name: 'Aspirin 75mg', dosage: '1 tablet once daily after breakfast', duration: '5 days' }
+    ]
+  },
+  {
+    id: 'P103',
+    date: '2026-06-05',
+    patientId: 'p1',
+    patientName: 'Karan',
+    doctorName: 'Dr. Catherine L.',
+    specialty: 'Senior Cardiologist',
+    diagnosis: 'Acute Cardiac Fatigue',
+    medicationsSummary: 'Sorbitrate 5mg',
+    status: 'past',
+    refills: 0,
+    details: [
+      { name: 'Sorbitrate 5mg', dosage: '1 tablet sublingually as needed', duration: '5 days' }
+    ]
+  }
+];
 
 export function DoctorProvider({ children }) {
   const { user } = useAuth();
@@ -93,18 +91,18 @@ export function DoctorProvider({ children }) {
   const [missedQueue, setMissedQueue] = useState(INITIAL_MISSED_QUEUE);
   const [checkout, setCheckout] = useState(INITIAL_CHECKOUT);
   const [notifications, setNotifications] = useState([
-    { id: 'n1', title: 'New Video Booking', description: 'Chinu booked a Video Consultation for 10:30 AM today.', time: '10 mins ago', read: false },
     { id: 'n2', title: 'Appointment Scheduled', description: 'Karan scheduled a Video Consultation for 10:00 AM today.', time: '30 mins ago', read: false }
   ]);
   const [chats, setChats] = useState(INITIAL_CHATS);
+  const [prescriptions, setPrescriptions] = useState(INITIAL_PRESCRIPTIONS);
   const [searchQ, setSearchQ] = useState('');
   const [apptModalOpen, setApptModalOpen] = useState(false);
   const [patientModalOpen, setPatientModalOpen] = useState(false);
 
   const [notifLog, setNotifLog] = useState([
-    { id: 'n1', patient: 'Karan Singh', msg: 'Please come 15 mins early for your 09:00 AM slot.', time: '08:45 AM', read: false },
-    { id: 'n2', patient: 'Priya Sharma', msg: 'Your video call link has been sent to your email.', time: '10:00 AM', read: true },
+    { id: 'n1', patient: 'Karan', msg: 'Please check your appointment status.', time: '08:45 AM', read: false }
   ]);
+
 
   const [activeChatPatientId, setActiveChatPatientId] = useState(null);
   const wsRef = useRef(null);
@@ -116,7 +114,9 @@ export function DoctorProvider({ children }) {
       const appt = appointments.find(a => a.id === idOrPhone);
       if (appt) return normalizePhone(appt.phone);
     }
-    if (String(idOrPhone).includes('-')) {
+    if (String(idOrPhone).startsWith('p') || String(idOrPhone).includes('-')) {
+      const pat = patients.find(p => p.id === idOrPhone);
+      if (pat) return normalizePhone(pat.phone);
       const appt = appointments.find(a => a.patientId === idOrPhone || a.id === idOrPhone);
       if (appt) return normalizePhone(appt.phone);
     }
@@ -126,6 +126,12 @@ export function DoctorProvider({ children }) {
   // Mapped chats that can be accessed by phone, appointment ID, or user ID
   const accessibleChats = useMemo(() => {
     const result = { ...chats };
+    patients.forEach(pat => {
+      const phoneKey = normalizePhone(pat.phone);
+      if (phoneKey && chats[phoneKey]) {
+        result[pat.id] = chats[phoneKey];
+      }
+    });
     appointments.forEach(appt => {
       const phoneKey = normalizePhone(appt.phone);
       if (phoneKey && chats[phoneKey]) {
@@ -134,7 +140,7 @@ export function DoctorProvider({ children }) {
       }
     });
     return result;
-  }, [chats, appointments]);
+  }, [chats, patients, appointments]);
 
   // ─── Computed Stats (live from data) ──────────────────────────
   const stats = useMemo(() => {
@@ -251,6 +257,22 @@ export function DoctorProvider({ children }) {
             }
           } else if (data.type === 'call_end') {
             setVideoCall({ isActive: false, patient: null, duration: 0 });
+          } else if (data.type === 'appointment_book') {
+            setAppointments(prev => {
+              if (prev.some(a => a.id === data.appointment.id)) return prev;
+              return [...prev, data.appointment];
+            });
+            if (user?.role === 'doctor') {
+              setNotifications(prev => [{
+                id: 'n_' + Date.now(),
+                title: 'New Appointment Requested',
+                description: `${data.appointment.name} requested a slot on ${data.appointment.date} at ${data.appointment.time}`,
+                time: 'Just now',
+                read: false
+              }, ...prev]);
+            }
+          } else if (data.type === 'appointment_status') {
+            setAppointments(prev => prev.map(a => a.id === data.appointmentId ? { ...a, status: data.status } : a));
           }
         } catch (err) { console.error('[DoctorContext] WS message error:', err); }
       };
@@ -261,7 +283,8 @@ export function DoctorProvider({ children }) {
 
     connect();
     return () => { if (ws) ws.close(); if (reconnectTimer) clearTimeout(reconnectTimer); };
-  }, [user, appointments]);
+  }, [user, appointments, patients]);
+
 
   // Handle re-sending join message if user logging in/out triggers change on active socket
   useEffect(() => {
@@ -293,6 +316,12 @@ export function DoctorProvider({ children }) {
     const newAppt = { id: 'a' + Date.now(), status: 'Scheduled', ...appt };
     setAppointments(prev => [...prev, newAppt]);
     setNotifications(prev => [{ id: 'n_' + Date.now(), title: 'New Appointment Booked', description: `${appt.name} — ${appt.type} on ${appt.date} at ${appt.time}`, time: 'Just now', read: false }, ...prev]);
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify({
+        type: 'appointment_book',
+        appointment: newAppt
+      }));
+    }
     return newAppt;
   };
 
@@ -555,16 +584,49 @@ export function DoctorProvider({ children }) {
     }
   };
 
+  const acceptAppointment = (id) => {
+    setAppointments(prev => prev.map(a => a.id === id ? { ...a, status: 'Confirmed' } : a));
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify({
+        type: 'appointment_status',
+        appointmentId: id,
+        status: 'Confirmed'
+      }));
+    }
+  };
+
+  const rejectAppointment = (id) => {
+    setAppointments(prev => prev.map(a => a.id === id ? { ...a, status: 'Rejected' } : a));
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify({
+        type: 'appointment_status',
+        appointmentId: id,
+        status: 'Rejected'
+      }));
+    }
+  };
+
+  const addPrescription = (rx) => {
+    const newRx = {
+      id: 'P' + Date.now(),
+      date: new Date().toISOString().split('T')[0],
+      status: 'active',
+      ...rx
+    };
+    setPrescriptions(prev => [newRx, ...prev]);
+    return newRx;
+  };
+
   // ─── Context Value ────────────────────────────────────────────
   return (
     <DoctorContext.Provider value={{
       // Data
       patients, appointments, upcomingQueue, missedQueue, checkout,
       notifications, chats: accessibleChats, activePatient, videoCall, notifLog, searchQ, stats,
-      activeChatPatientId,
+      activeChatPatientId, prescriptions,
       // Setters
       setVideoCall, setActivePatient, setSearchQ, setNotifLog,
-      setActiveChatPatientId,
+      setActiveChatPatientId, setPrescriptions,
       // Modal controls
       apptModalOpen, setApptModalOpen,
       patientModalOpen, setPatientModalOpen,
@@ -573,6 +635,7 @@ export function DoctorProvider({ children }) {
       // Appointment actions
       addAppointment, setAppointmentActive, completeAppointment,
       rescheduleAppointment, cancelAppointment, bulkRescheduleRemaining,
+      acceptAppointment, rejectAppointment,
       // Queue actions
       confirmQueuePatient, cancelQueuePatient, rejoinQueue, addToQueue,
       // Checkout actions
@@ -583,6 +646,8 @@ export function DoctorProvider({ children }) {
       startVideoConsult, endVideoConsult, acceptVideoConsult, declineVideoConsult,
       // Notification actions
       notifyPatient, markNotificationRead, markAllNotificationsRead, markAllNotifLogRead,
+      // Prescription actions
+      addPrescription,
       // Helpers
       TODAY_STR, TOMORROW_STR,
     }}>
@@ -594,3 +659,4 @@ export function DoctorProvider({ children }) {
 export function useDoctor() {
   return useContext(DoctorContext);
 }
+
