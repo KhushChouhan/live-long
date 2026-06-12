@@ -195,7 +195,7 @@ export default function MedicalClinicPortal() {
     addPatient,
     // Appointment actions
     addAppointment, setAppointmentActive, completeAppointment,
-    rescheduleAppointment, cancelAppointment,
+    rescheduleAppointment, cancelAppointment, acceptAppointment, rejectAppointment,
     // Queue actions
     confirmQueuePatient, cancelQueuePatient, rejoinQueue, addToQueue,
     // Checkout actions

@@ -523,7 +523,7 @@ export default function UserDashboard() {
                   
                   {a.status === 'Pending' && (
                     <View style={{ backgroundColor: C.warningSoft, padding: 8, borderRadius: 8, marginBottom: 10, borderWidth: 1, borderColor: C.warning + '20' }}>
-                      <Text style={{ fontSize: 11, color: C.warning, fontWeight: '600' }}>Waiting for doctor's approval</Text>
+                      <Text style={{ fontSize: 11, color: C.warning, fontWeight: '600' }}>{"Waiting for doctor's approval"}</Text>
                     </View>
                   )}
 
