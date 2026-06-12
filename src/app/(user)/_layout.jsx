@@ -243,6 +243,15 @@ export default function UserLayout() {
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (e) {
+      console.error(e);
+    }
+    router.replace('/login');
+  };
+
   const jitsiUrl = buildJitsiUrl(videoCall.roomName || 'livelong-consult-default', currentUser?.name || 'Patient');
 
   return (
@@ -295,7 +304,7 @@ export default function UserLayout() {
                 <Text style={{ fontSize: 10, fontWeight: '700', color: pathname.includes('appointments') && params?.filter === 'video' ? '#2563EB' : '#94A3B8' }}>Video</Text>
               </TouchableOpacity>
               
-              <TouchableOpacity onPress={logout} style={{ alignItems: 'center', gap: 4 }}>
+              <TouchableOpacity onPress={handleLogout} style={{ alignItems: 'center', gap: 4 }}>
                 <LogOut size={22} color="#94A3B8" />
                 <Text style={{ fontSize: 10, fontWeight: '700', color: '#94A3B8' }}>Logout</Text>
               </TouchableOpacity>

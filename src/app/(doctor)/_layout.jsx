@@ -8,12 +8,14 @@ import { useDoctor } from '../../store/DoctorContext';
 import { Home, Calendar, MessageSquare, Video, LogOut } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useAuth } from '../../store/AuthContext';
 
 // Layout contents inside provider
 function LayoutContent() {
   const router = useRouter();
   const pathname = usePathname();
   const { chats } = useDoctor();
+  const { logout } = useAuth();
 
   const [dimensions, setDimensions] = useState(Dimensions.get('window'));
   useEffect(() => {
@@ -74,9 +76,7 @@ function LayoutContent() {
   const handleTabPress = async (path) => {
     if (path === 'logout') {
       try {
-        await AsyncStorage.removeItem('current_user');
-        await AsyncStorage.removeItem('csrf_token');
-        await AsyncStorage.removeItem('logout_token');
+        await logout();
       } catch (e) {
         console.error(e);
       }

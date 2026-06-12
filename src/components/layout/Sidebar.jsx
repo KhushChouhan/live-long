@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Platform } from 'react-native';
 import { useRouter, usePathname } from 'expo-router';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MotiView } from 'moti';
 import Logo from '../Logo';
 import { 
   ChevronDown,
   LogOut
 } from 'lucide-react-native';
+import { useAuth } from '../../store/AuthContext';
 
 const scrollbarStyles = `
   .custom-scrollbar::-webkit-scrollbar {
@@ -28,6 +28,7 @@ const scrollbarStyles = `
 export default function Sidebar({ isOpen, onClose, menuData = [] }) {
   const router = useRouter();
   const pathname = usePathname();
+  const { logout } = useAuth();
   
   // Start with items collapsed by default so the hover effect is visible
   const [expandedItems, setExpandedItems] = useState([]);
@@ -144,9 +145,7 @@ export default function Sidebar({ isOpen, onClose, menuData = [] }) {
         <TouchableOpacity
           onPress={async () => {
             try {
-              await AsyncStorage.removeItem('current_user');
-              await AsyncStorage.removeItem('csrf_token');
-              await AsyncStorage.removeItem('logout_token');
+              await logout();
             } catch (e) {
               console.error(e);
             }
