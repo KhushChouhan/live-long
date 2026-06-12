@@ -6015,3 +6015,16 @@
 {"level":"info","message":"Server running in [development] mode on port 5000","timestamp":"2026-06-12 10:22:08"}
 {"level":"info","message":"Local   : http://localhost:5000","timestamp":"2026-06-12 10:22:08"}
 {"level":"info","message":"Network : http://192.168.137.1:5000 ","timestamp":"2026-06-12 10:22:08"}
+{"level":"info","message":"Connecting to MongoDB database...","timestamp":"2026-06-12 10:33:42"}
+{"level":"info","message":"MongoDB database connection established successfully.","timestamp":"2026-06-12 10:33:59"}
+{"level":"info","message":"Database connection established successfully.","timestamp":"2026-06-12 10:33:59"}
+{"level":"info","message":"Resetting and seeding mock database patient data...","timestamp":"2026-06-12 10:33:59"}
+{"level":"info","message":"Already exists: Dr. Catherine Lawrence (+919876543210)","timestamp":"2026-06-12 10:34:09"}
+{"level":"info","message":"Already exists: System Admin (+917777777777)","timestamp":"2026-06-12 10:34:12"}
+{"level":"info","message":"Server running in [development] mode on port 5000","timestamp":"2026-06-12 10:34:16"}
+{"level":"info","message":"Local   : http://localhost:5000","timestamp":"2026-06-12 10:34:16"}
+{"level":"info","message":"Network : http://192.168.137.1:5000 ","timestamp":"2026-06-12 10:34:16"}
+{"level":"info","message":"[WS] Client connected. Total clients: 1","timestamp":"2026-06-12 10:35:40"}
+{"level":"info","message":"POST /api/auth/login - IP: 10.101.159.216","timestamp":"2026-06-12 10:36:11"}
+{"level":"info","message":"User logged in: doctor@livelong.com","timestamp":"2026-06-12 10:36:11"}
+{"level":"info","message":"[WS] Client disconnected. Total clients: 0","timestamp":"2026-06-12 10:42:30"}
