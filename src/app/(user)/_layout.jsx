@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Platform, SafeAreaView, StatusBar, Text, TouchableOpacity,
-  PermissionsAndroid, Vibration
+  PermissionsAndroid, Vibration, useWindowDimensions
 } from 'react-native';
-import { Slot } from 'expo-router';
+import { Slot, useRouter, usePathname } from 'expo-router';
 import Sidebar from '../../components/layout/Sidebar';
 import Topbar from '../../components/layout/Topbar';
 import { USER_MENU } from '../../config/navigation';
@@ -11,7 +11,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { WebView } from 'react-native-webview';
 import { useDoctor } from '../../store/DoctorContext';
 import { useAuth } from '../../store/AuthContext';
-import { PhoneOff, Mic, MicOff, Video } from 'lucide-react-native';
+import { PhoneOff, Mic, MicOff, Video, Home, Calendar, MessageSquare, LogOut } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import Logo from '../../components/Logo';
 
@@ -115,15 +115,27 @@ function formatDuration(secs) {
 
 
 
-export default function PatientLayout() {
-  const [sidebarOpen, setSidebarOpen] = useState(Platform.OS === 'web');
-  const { videoCall, endVideoConsult, acceptVideoConsult, declineVideoConsult } = useDoctor();
-  const { user } = useAuth();
-
+export default function UserLayout() {
+  const { user, logout } = useAuth();
+  const { videoCall, acceptVideoConsult, declineVideoConsult, endVideoConsult, chats } = useDoctor();
   const [currentUser, setCurrentUser] = useState(user);
-  const [callDuration, setCallDuration] = useState(0);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [muted, setMuted] = useState(false);
+  const [callDuration, setCallDuration] = useState(0);
   const vibratingRef = useRef(false);
+
+  const { width: W } = useWindowDimensions();
+  const isMob = W < 600;
+  const router = useRouter();
+  const pathname = usePathname();
+
+  // Get unread chats count
+  const patientId = useMemo(() => {
+    if (!currentUser || !currentUser.phone) return 'p1';
+    return 'p1'; // Assuming standard mock mapping for now, or calculate properly
+  }, [currentUser]);
+  const patientMsgs = chats[patientId] || [];
+  const unreadChats = patientMsgs.filter(m => m.sender === 'doctor').length; // simple mock for unread count
 
   const callStatus = videoCall.isActive ? (videoCall.incoming ? 'incoming' : 'connected') : 'idle';
 
@@ -209,6 +221,52 @@ export default function PatientLayout() {
         <View className="flex-1 bg-slate-50">
           <Topbar onMenuPress={() => setSidebarOpen(!sidebarOpen)} />
           <Slot />
+          
+          {/* Bottom Navigation Bar for Mobile */}
+          {isMob && (
+            <View style={{
+              flexDirection: 'row',
+              justifyContent: 'space-around',
+              alignItems: 'center',
+              backgroundColor: '#fff',
+              paddingVertical: 10,
+              paddingBottom: Platform.OS === 'ios' ? 24 : 10,
+              borderTopWidth: 1,
+              borderTopColor: '#E2E8F0',
+            }}>
+              <TouchableOpacity onPress={() => router.push('/user/dashboard')} style={{ alignItems: 'center', gap: 4 }}>
+                <Home size={22} color={pathname === '/user/dashboard' ? '#2563EB' : '#94A3B8'} />
+                <Text style={{ fontSize: 10, fontWeight: '700', color: pathname === '/user/dashboard' ? '#2563EB' : '#94A3B8' }}>Home</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity onPress={() => router.push('/user/appointments/appointment-list')} style={{ alignItems: 'center', gap: 4 }}>
+                <Calendar size={22} color={pathname.includes('appointments') ? '#2563EB' : '#94A3B8'} />
+                <Text style={{ fontSize: 10, fontWeight: '700', color: pathname.includes('appointments') ? '#2563EB' : '#94A3B8' }}>Appointments</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity onPress={() => router.push('/user/dashboard')} style={{ alignItems: 'center', gap: 4 }}>
+                <View>
+                  <MessageSquare size={22} color={pathname.includes('chat') ? '#2563EB' : '#94A3B8'} />
+                  {unreadChats > 0 && (
+                    <View style={{ position: 'absolute', top: -4, right: -6, backgroundColor: '#EF4444', borderRadius: 8, paddingHorizontal: 4, minWidth: 16, height: 16, alignItems: 'center', justifyContent: 'center' }}>
+                      <Text style={{ color: '#fff', fontSize: 8, fontWeight: 'bold' }}>{unreadChats > 9 ? '9+' : unreadChats}</Text>
+                    </View>
+                  )}
+                </View>
+                <Text style={{ fontSize: 10, fontWeight: '700', color: pathname.includes('chat') ? '#2563EB' : '#94A3B8' }}>Chats</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity onPress={() => router.push('/user/dashboard')} style={{ alignItems: 'center', gap: 4 }}>
+                <Video size={22} color={pathname.includes('video') ? '#2563EB' : '#94A3B8'} />
+                <Text style={{ fontSize: 10, fontWeight: '700', color: pathname.includes('video') ? '#2563EB' : '#94A3B8' }}>Video</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity onPress={logout} style={{ alignItems: 'center', gap: 4 }}>
+                <LogOut size={22} color="#94A3B8" />
+                <Text style={{ fontSize: 10, fontWeight: '700', color: '#94A3B8' }}>Logout</Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
       </View>
 

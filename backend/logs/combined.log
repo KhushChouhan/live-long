@@ -6112,3 +6112,31 @@
 {"level":"info","message":"[WS] Received message: {\"type\":\"chat\",\"patientId\":\"a3\",\"message\":{\"id\":\"m_1781257820500\",\"text\":\"MMzm\",\"sender\":\"doctor\",\"timestamp\":\"3:20 pm\",\"patientName\":\"Karan\"}}","timestamp":"2026-06-12 15:20:20"}
 {"level":"info","message":"[WS] Chat message fallback to broadcast","timestamp":"2026-06-12 15:20:20"}
 {"level":"info","message":"[WS] Client disconnected. Total clients: 1","timestamp":"2026-06-12 15:20:29"}
+{"level":"info","message":"Connecting to MongoDB database...","timestamp":"2026-06-12 15:42:13"}
+{"level":"info","message":"MongoDB database connection established successfully.","timestamp":"2026-06-12 15:42:16"}
+{"level":"info","message":"Database connection established successfully.","timestamp":"2026-06-12 15:42:16"}
+{"level":"info","message":"Resetting and seeding mock database patient data...","timestamp":"2026-06-12 15:42:16"}
+{"level":"info","message":"Already exists: Dr. Catherine Lawrence (+919876543210)","timestamp":"2026-06-12 15:42:19"}
+{"level":"info","message":"Already exists: System Admin (+917777777777)","timestamp":"2026-06-12 15:42:21"}
+{"level":"info","message":"Server running in [development] mode on port 5000","timestamp":"2026-06-12 15:42:22"}
+{"level":"info","message":"Local   : http://localhost:5000","timestamp":"2026-06-12 15:42:22"}
+{"level":"info","message":"Network : http://10.101.159.174:5000 ","timestamp":"2026-06-12 15:42:22"}
+{"level":"info","message":"POST /api/auth/login - IP: 10.101.159.216","timestamp":"2026-06-12 15:42:24"}
+{"level":"info","message":"[WS] Client connected. Total clients: 1","timestamp":"2026-06-12 15:42:25"}
+{"level":"info","message":"User logged in: doctor@livelong.com","timestamp":"2026-06-12 15:42:25"}
+{"level":"info","message":"[WS] Client connected. Total clients: 2","timestamp":"2026-06-12 15:42:26"}
+{"level":"info","message":"[WS] Client connected. Total clients: 3","timestamp":"2026-06-12 15:42:26"}
+{"level":"info","message":"[WS] Received message: {\"type\":\"join\",\"role\":\"patient\",\"userId\":\"66666666-6666-6666-6666-666666666666\",\"phone\":\"+918890204260\"}","timestamp":"2026-06-12 15:42:26"}
+{"level":"info","message":"[WS] Client registered: role=patient, userId=66666666-6666-6666-6666-666666666666, phone=8890204260","timestamp":"2026-06-12 15:42:26"}
+{"level":"info","message":"[WS] Received message: {\"type\":\"chat\",\"phone\":\"95713299819\",\"patientId\":\"a13\",\"message\":{\"id\":\"m_1781259167934\",\"text\":\"Hy Sonia\",\"sender\":\"doctor\",\"timestamp\":\"3:42 pm\",\"patientName\":\"Sonia\"}}","timestamp":"2026-06-12 15:42:48"}
+{"level":"info","message":"[WS] Chat message fallback to broadcast","timestamp":"2026-06-12 15:42:48"}
+{"level":"info","message":"POST /api/auth/login - IP: 10.101.159.216","timestamp":"2026-06-12 15:43:04"}
+{"level":"info","message":"User logged in: karan@livelong.com","timestamp":"2026-06-12 15:43:05"}
+{"level":"info","message":"[WS] Received message: {\"type\":\"chat\",\"phone\":\"8890204260\",\"patientId\":\"p1\",\"message\":{\"id\":\"m_1781259202536\",\"text\":\"Hy doctor\",\"sender\":\"patient\",\"timestamp\":\"3:43 pm\",\"patientName\":\"Karan\"}}","timestamp":"2026-06-12 15:43:22"}
+{"level":"info","message":"[WS] Chat message fallback to broadcast","timestamp":"2026-06-12 15:43:22"}
+{"level":"info","message":"POST /api/auth/login - IP: 10.101.159.216","timestamp":"2026-06-12 15:43:53"}
+{"level":"info","message":"User logged in: doctor@livelong.com","timestamp":"2026-06-12 15:43:54"}
+{"level":"info","message":"POST /api/auth/login - IP: 10.101.159.216","timestamp":"2026-06-12 15:44:15"}
+{"level":"info","message":"User logged in: doctor@livelong.com","timestamp":"2026-06-12 15:44:15"}
+{"level":"info","message":"[WS] Client disconnected. Total clients: 2","timestamp":"2026-06-12 15:45:48"}
+{"level":"info","message":"[WS] Client disconnected. Total clients: 1","timestamp":"2026-06-12 15:45:48"}
