@@ -1,0 +1,12 @@
+- [x] Clean registry & seed data in backend (`backend/server.js`)
+- [x] Clean registry & initial data in frontend (`src/store/DoctorContext.js`)
+- [x] Implement central prescriptions list & actions in `DoctorContext.js`
+- [x] Implement accept/reject actions & WebSocket status syncing in `DoctorContext.js`
+- [x] Restructure and align mobile topbar in `Topbar.jsx`
+- [x] Fix patient ID resolution and appointment filtering in patient dashboard
+- [x] Fix patient ID resolution in `AppointmentListScreen.jsx`
+- [x] Implement proper Booking form in `AddAppointmentScreen.jsx`
+- [x] Add accept/reject actions to doctor's `appointment-list.jsx`
+- [x] Connect `AllPrescriptions.jsx` to `DoctorContext.js` prescriptions
+- [x] Connect `MedicationTracker.jsx` to prescriptions with 5-day expiration archiving
+- [x] Verification and deployment checklist
