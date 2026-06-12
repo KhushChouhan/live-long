@@ -470,7 +470,7 @@ export default function MedicalClinicPortal() {
 
           {filteredAppts.map((a, i) => {
             const isActive = a.status === 'Active';
-            const isDone = ['Cancelled', 'Completed', 'Rescheduled'].includes(a.status);
+            const isDone = ['Cancelled', 'Completed', 'Rescheduled', 'Rejected'].includes(a.status);
             return (
               <View key={a.id} style={{
                 flexDirection: 'row', alignItems: 'center', paddingHorizontal: 24, paddingVertical: 14,
@@ -487,10 +487,15 @@ export default function MedicalClinicPortal() {
                 <Text style={{ flex: 1, fontSize: 13, fontWeight: '600', color: C.text }}>{a.time}</Text>
                 {showDateCol && <Text style={{ flex: 1, fontSize: 12, color: C.textMid }}>{a.date}</Text>}
                 <View style={{ flex: 0.8 }}><Badge label={a.type} color={a.type === 'Video' ? 'purple' : 'blue'} /></View>
-                <View style={{ flex: 0.8 }}><Badge label={a.status} color={a.status === 'Active' ? 'green' : a.status === 'Cancelled' ? 'red' : a.status === 'Completed' ? 'green' : a.status === 'Rescheduled' ? 'orange' : 'blue'} /></View>
+                <View style={{ flex: 0.8 }}><Badge label={a.status} color={a.status === 'Active' ? 'green' : a.status === 'Cancelled' || a.status === 'Rejected' ? 'red' : a.status === 'Completed' ? 'green' : a.status === 'Rescheduled' ? 'orange' : a.status === 'Pending' ? 'yellow' : 'blue'} /></View>
 
                 <View style={{ flex: 2.5, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 6 }}>
-                  {!isDone && (
+                  {a.status === 'Pending' ? (
+                    <>
+                      <Btn label="Accept" onPress={() => acceptAppointment(a.id)} color="blue" small style={{ paddingHorizontal: 8, minWidth: 60 }} />
+                      <Btn label="Reject" onPress={() => rejectAppointment(a.id)} outline color="red" small style={{ paddingHorizontal: 8, minWidth: 60 }} />
+                    </>
+                  ) : !isDone && (
                     <>
                       {!isActive && apptDayTab === 'Today' && (
                         <TouchableOpacity onPress={() => setAppointmentActive(a.id)} style={{ backgroundColor: C.successSoft, borderRadius: 7, padding: 5 }}>

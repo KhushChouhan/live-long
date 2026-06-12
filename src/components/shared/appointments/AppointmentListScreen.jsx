@@ -39,8 +39,10 @@ const isPhysical = (a) => a.type === 'physical' || a.type === 'in-person';
 const STATUS_COLORS = {
   Pending:   { bg: C.amberSoft,  text: '#92400E', border: '#FDE68A' },
   Scheduled: { bg: C.blueSoft,   text: C.blue,    border: C.blue + '40' },
+  Active:    { bg: C.blueSoft,   text: C.blue,    border: C.blue + '40' },
   Completed: { bg: C.greenSoft,  text: C.green,   border: C.green + '40' },
   Cancelled: { bg: C.redSoft,    text: C.red,     border: C.red + '40' },
+  Rejected:  { bg: C.redSoft,    text: C.red,     border: C.red + '40' },
 };
 
 // ── Filter Tab ─────────────────────────────────────────────────────────────────

@@ -861,13 +861,16 @@ export default function UserDashboard() {
 
             {/* Row 4: next appointment strip (if exists) */}
             {todayAppt && (
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: 'rgba(255,255,255,0.12)', borderRadius: 14, paddingHorizontal: 14, paddingVertical: 11, borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)' }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: todayAppt.status === 'Pending' ? 'rgba(255,165,0,0.1)' : 'rgba(255,255,255,0.12)', borderRadius: 14, paddingHorizontal: 14, paddingVertical: 11, borderWidth: 1, borderColor: todayAppt.status === 'Pending' ? 'rgba(255,165,0,0.3)' : 'rgba(255,255,255,0.2)' }}>
                 <View style={{ width: 36, height: 36, borderRadius: 11, backgroundColor: 'rgba(255,255,255,0.16)', alignItems: 'center', justifyContent: 'center' }}>
-                  <Feather name={isVideo(todayAppt) ? 'video' : 'map-pin'} size={15} color="rgba(255,255,255,0.9)" />
+                  <Feather name={isVideo(todayAppt) ? 'video' : 'map-pin'} size={15} color={todayAppt.status === 'Pending' ? '#FFD700' : "rgba(255,255,255,0.9)"} />
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 9, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 }}>Next Session</Text>
                   <Text style={{ color: '#fff', fontSize: 15, fontWeight: '900' }}>{todayAppt.time}</Text>
+                  {todayAppt.status === 'Pending' && (
+                    <Text style={{ color: '#FFD700', fontSize: 10, fontWeight: '700', marginTop: 2 }}>Pending Confirmation</Text>
+                  )}
                 </View>
                 <View style={{ backgroundColor: isVideo(todayAppt) ? 'rgba(0,102,255,0.35)' : 'rgba(0,179,164,0.3)', borderRadius: 10, paddingHorizontal: 9, paddingVertical: 4 }}>
                   <Text style={{ color: isVideo(todayAppt) ? '#B3D9FF' : '#66FFF5', fontSize: 10, fontWeight: '700' }}>{isVideo(todayAppt) ? 'Video' : 'In-Person'}</Text>
@@ -910,10 +913,13 @@ export default function UserDashboard() {
               </TouchableOpacity>
 
               {todayAppt && (
-                <View style={{ backgroundColor: 'rgba(255,255,255,0.14)', borderRadius: 14, paddingHorizontal: 12, paddingVertical: 10, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.22)' }}>
-                  <Feather name={isVideo(todayAppt) ? 'video' : 'map-pin'} size={13} color="rgba(255,255,255,0.85)" />
+                <View style={{ backgroundColor: todayAppt.status === 'Pending' ? 'rgba(255,165,0,0.15)' : 'rgba(255,255,255,0.14)', borderRadius: 14, paddingHorizontal: 12, paddingVertical: 10, alignItems: 'center', borderWidth: 1, borderColor: todayAppt.status === 'Pending' ? 'rgba(255,165,0,0.3)' : 'rgba(255,255,255,0.22)' }}>
+                  <Feather name={isVideo(todayAppt) ? 'video' : 'map-pin'} size={13} color={todayAppt.status === 'Pending' ? '#FFD700' : "rgba(255,255,255,0.85)"} />
                   <Text style={{ color: '#fff', fontSize: 15, fontWeight: '900', marginTop: 4 }}>{todayAppt.time}</Text>
                   <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 9, marginTop: 2 }}>{isVideo(todayAppt) ? 'Video' : 'Visit'}</Text>
+                  {todayAppt.status === 'Pending' && (
+                    <Text style={{ color: '#FFD700', fontSize: 9, fontWeight: '700', marginTop: 4 }}>Pending</Text>
+                  )}
                 </View>
               )}
             </View>

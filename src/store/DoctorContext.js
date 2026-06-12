@@ -128,15 +128,15 @@ export function DoctorProvider({ children }) {
     const result = { ...chats };
     patients.forEach(pat => {
       const phoneKey = normalizePhone(pat.phone);
-      if (phoneKey && chats[phoneKey]) {
-        result[pat.id] = chats[phoneKey];
+      if (phoneKey) {
+        result[pat.id] = chats[phoneKey] || [];
       }
     });
     appointments.forEach(appt => {
       const phoneKey = normalizePhone(appt.phone);
-      if (phoneKey && chats[phoneKey]) {
-        result[appt.id] = chats[phoneKey];
-        result[appt.patientId] = chats[phoneKey];
+      if (phoneKey) {
+        result[appt.id] = chats[phoneKey] || [];
+        result[appt.patientId] = chats[phoneKey] || [];
       }
     });
     return result;
@@ -533,6 +533,20 @@ export function DoctorProvider({ children }) {
     setVideoCall({ isActive: false, patient: null, duration: 0 });
   };
 
+  const rejectAppointment = (apptId) => {
+    setAppointments(prev => prev.map(a => a.id === apptId ? { ...a, status: 'Rejected' } : a));
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify({ type: 'appointment_status', appointmentId: apptId, status: 'Rejected' }));
+    }
+  };
+
+  const acceptAppointment = (apptId) => {
+    setAppointments(prev => prev.map(a => a.id === apptId ? { ...a, status: 'Scheduled' } : a));
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify({ type: 'appointment_status', appointmentId: apptId, status: 'Scheduled' }));
+    }
+  };
+
   const notifyPatient = async (patientId, messageType, messageText) => {
     const appt = appointments.find(a => a.id === patientId);
     const patientName = appt?.name || 'Patient';
@@ -581,28 +595,6 @@ export function DoctorProvider({ children }) {
     }));
     if (count > 0) {
       setNotifications(prev => [{ id: 'n_' + Date.now(), title: 'Bulk Reschedule', description: `Rescheduled ${count} pending appointments to tomorrow.`, time: 'Just now', read: false }, ...prev]);
-    }
-  };
-
-  const acceptAppointment = (id) => {
-    setAppointments(prev => prev.map(a => a.id === id ? { ...a, status: 'Confirmed' } : a));
-    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-      wsRef.current.send(JSON.stringify({
-        type: 'appointment_status',
-        appointmentId: id,
-        status: 'Confirmed'
-      }));
-    }
-  };
-
-  const rejectAppointment = (id) => {
-    setAppointments(prev => prev.map(a => a.id === id ? { ...a, status: 'Rejected' } : a));
-    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-      wsRef.current.send(JSON.stringify({
-        type: 'appointment_status',
-        appointmentId: id,
-        status: 'Rejected'
-      }));
     }
   };
 
